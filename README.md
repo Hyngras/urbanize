@@ -1,4 +1,4 @@
-# Urbanize — Plataforma de Gestão de Demandas Urbanas
+# Urbanize — Plataforma de Gestão de Demandas Urbanas [![CI](https://github.com/Hyngras/urbanize/actions/workflows/ci.yml/badge.svg)](https://github.com/Hyngras/urbanize/actions/workflows/ci.yml)
 
 Frontend Next.js (App Router) para o MVP da disciplina. Inclui Chakra UI + Tailwind, Zustand para estado global e uma API fake via rotas do Next.
 
