@@ -1,8 +1,9 @@
-export type UserRole = "citizen" | "manager";
+export type DemandRole = "cidadao" | "gestor";
 
 export interface User {
   id: string;
-  name: string;
+  nome: string;
   email: string;
-  role: UserRole;
+  telefone?: string;
+  role: DemandRole;
 }

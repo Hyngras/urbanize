@@ -1,21 +1,10 @@
 import { api } from "./api";
-import { Demand, DemandFilters, DemandStatus } from "@/types/demand";
+import { Demand, FilterState } from "@/types/demand";
 
 export const demandService = {
-  async list(filters: DemandFilters = {}) {
-    const { data } = await api.get<Demand[]>("/demands", { params: filters });
-    return data;
-  },
-  async getById(id: string) {
-    const { data } = await api.get<Demand>(`/demands/${id}`);
-    return data;
-  },
-  async create(payload: Omit<Demand, "id" | "createdAt" | "updatedAt">) {
-    const { data } = await api.post<Demand>("/demands", payload);
-    return data;
-  },
-  async updateStatus(id: string, status: DemandStatus) {
-    const { data } = await api.patch<Demand>(`/demands/${id}/status`, { status });
-    return data;
-  },
+  getAll: (filters?: FilterState) => api.getDemands(filters),
+  getById: (id: string) => api.getDemandById(id),
+  create: (payload: Omit<Demand, "id" | "protocolo" | "criadaEm" | "atualizadaEm">) => api.createDemand(payload),
+  updateStatus: (id: string, status: Demand["status"], observacaoGestor?: string) =>
+    api.updateDemandStatus(id, status, observacaoGestor),
 };

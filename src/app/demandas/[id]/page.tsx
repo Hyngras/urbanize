@@ -2,27 +2,25 @@
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { PriorityBadge } from "@/components/ui/PriorityBadge";
+import { DemandTimeline } from "@/components/demandas/DemandTimeline";
 import { useDemandStore } from "@/store/demandStore";
 import { formatDate } from "@/utils/formatDate";
-import { Box, Button, Flex, Heading, Stack, Text, useToast } from "@chakra-ui/react";
+import { categoryLabel } from "@/utils/categoryLabel";
+import { formatLocation } from "@/utils/locationLabel";
+import { Box, Button, Flex, Grid, Heading, Stack, Text, Textarea, useToast } from "@chakra-ui/react";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
-
-const nextStatus = {
-  aberta: "em_andamento",
-  em_andamento: "concluida",
-  concluida: "concluida",
-  cancelada: "cancelada",
-} as const;
+import { useEffect, useState } from "react";
 
 export default function DemandDetailPage() {
   const params = useParams<{ id: string }>();
   const toast = useToast();
-  const { selected, get, updateStatus, loading } = useDemandStore();
+  const { selected, fetchDemandById, updateDemandStatus, loading } = useDemandStore();
+  const [observacao, setObservacao] = useState("");
 
   useEffect(() => {
-    if (params?.id) get(params.id);
-  }, [params?.id, get]);
+    if (params?.id) fetchDemandById(params.id);
+  }, [params?.id, fetchDemandById]);
 
   if (!selected) {
     return (
@@ -33,42 +31,56 @@ export default function DemandDetailPage() {
   }
 
   const handleAdvance = async () => {
-    const target = nextStatus[selected.status];
-    await updateStatus(selected.id, target);
-    toast({ title: `Status atualizado para ${target}`, status: "success" });
+    await updateDemandStatus(selected.id, "encaminhada", observacao || "Atualização" );
+    toast({ title: "Status atualizado", status: "success" });
   };
 
   return (
     <AppLayout>
-      <Flex justify="space-between" mb={4} align={{ base: "flex-start", md: "center" }} gap={3}>
+      <Flex justify="space-between" align={{ base: "flex-start", md: "center" }} mb={4} gap={3}>
         <Box>
-          <Heading>{selected.title}</Heading>
-          <Text color="gray.600">Registrada em {formatDate(selected.createdAt)} por {selected.citizenName}</Text>
+          <Text color="gray.500">Protocolo {selected.protocolo}</Text>
+          <Heading>{selected.titulo}</Heading>
+          <Text color="gray.600">Registrada em {formatDate(selected.criadaEm)}</Text>
         </Box>
-        <StatusBadge status={selected.status} />
+        <Stack align="flex-end" spacing={2}>
+          <StatusBadge status={selected.status} />
+          <PriorityBadge priority={selected.prioridade} />
+        </Stack>
       </Flex>
 
-      <Stack spacing={4} bg="white" p={6} rounded="lg" border="1px solid" borderColor="gray.100" shadow="sm">
-        <Box>
-          <Heading size="sm" mb={2}>Descrição</Heading>
-          <Text color="gray.700">{selected.description}</Text>
-        </Box>
-        <Box>
-          <Heading size="sm" mb={2}>Localização</Heading>
-          <Text color="gray.700">{selected.location.address}</Text>
-          <Text color="gray.500">Região: {selected.location.region ?? "-"}</Text>
-        </Box>
-        <Box>
-          <Heading size="sm" mb={2}>Histórico</Heading>
-          <Text color="gray.600">Atualizada em {formatDate(selected.updatedAt)}</Text>
-        </Box>
-        <Flex gap={3}>
-          <Button colorScheme="brand" onClick={handleAdvance} isLoading={loading} isDisabled={selected.status === "concluida" || selected.status === "cancelada"}>
-            Avançar status
-          </Button>
-          <Button variant="outline" onClick={() => updateStatus(selected.id, "cancelada")}>Cancelar</Button>
-        </Flex>
-      </Stack>
+      <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={6}>
+        <Stack spacing={4}>
+          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
+            <Heading size="sm" mb={2}>Descrição</Heading>
+            <Text color="gray.700">{selected.descricao}</Text>
+          </Box>
+          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
+            <Heading size="sm" mb={2}>Localização</Heading>
+            <Text color="gray.700">{formatLocation(selected.endereco)}</Text>
+          </Box>
+          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
+            <Heading size="sm" mb={3}>Histórico</Heading>
+            <DemandTimeline history={selected.historico} />
+          </Box>
+        </Stack>
+
+        <Stack spacing={4}>
+          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
+            <Heading size="sm" mb={2}>Triagem automática (mock)</Heading>
+            <Text>Categoria sugerida: {categoryLabel[selected.categoria]}</Text>
+            <Text>Órgão sugerido: {selected.sugestaoEncaminhamento ?? "—"}</Text>
+            <Text>Confiança: {Math.round((selected.scoreTriagem ?? 0.72) * 100)}%</Text>
+          </Box>
+          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
+            <Heading size="sm" mb={2}>Ação do gestor</Heading>
+            <Textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Observação ou despacho" mb={3} />
+            <Button colorScheme="brand" onClick={handleAdvance} isLoading={loading}>
+              Encaminhar
+            </Button>
+          </Box>
+        </Stack>
+      </Grid>
     </AppLayout>
   );
 }

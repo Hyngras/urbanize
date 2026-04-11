@@ -1,29 +1,67 @@
-export type DemandStatus = "aberta" | "em_andamento" | "concluida" | "cancelada";
-export type DemandCategory = "iluminacao" | "vias" | "coleta" | "saneamento" | "fiscalizacao";
+export type DemandStatus =
+  | "registrada"
+  | "em_analise"
+  | "encaminhada"
+  | "em_atendimento"
+  | "resolvida"
+  | "cancelada";
 
-export interface Location {
-  lat: number;
-  lng: number;
-  address: string;
-  region?: string;
+export type DemandCategory =
+  | "vias_publicas"
+  | "iluminacao_publica"
+  | "coleta_de_lixo"
+  | "saneamento"
+  | "fiscalizacao"
+  | "zeladoria"
+  | "outros";
+
+export type DemandPriority = "baixa" | "media" | "alta";
+export type DemandSource = "cidadao" | "sistema_externo" | "orgao";
+
+export interface Address {
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  referencia?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface DemandHistoryItem {
+  id: string;
+  status: DemandStatus;
+  descricao: string;
+  data: string;
+  autor: string;
 }
 
 export interface Demand {
   id: string;
-  title: string;
-  description: string;
-  category: DemandCategory;
+  protocolo: string;
+  titulo: string;
+  descricao: string;
+  categoria: DemandCategory;
+  prioridade: DemandPriority;
   status: DemandStatus;
-  location: Location;
-  createdAt: string;
-  updatedAt: string;
-  citizenName: string;
-  attachments?: string[];
+  nomeSolicitante: string;
+  emailSolicitante: string;
+  telefoneSolicitante?: string;
+  endereco: Address;
+  origem: DemandSource;
+  orgaoResponsavel?: string;
+  imagemUrl?: string;
+  observacaoGestor?: string;
+  scoreTriagem?: number;
+  sugestaoEncaminhamento?: string;
+  criadaEm: string;
+  atualizadaEm: string;
+  historico: DemandHistoryItem[];
 }
 
-export interface DemandFilters {
+export interface FilterState {
+  busca?: string;
   status?: DemandStatus;
-  category?: DemandCategory;
-  region?: string;
-  search?: string;
+  categoria?: DemandCategory;
+  bairro?: string;
+  prioridade?: DemandPriority;
 }

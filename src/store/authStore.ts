@@ -7,8 +7,8 @@ interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: "citizen" | "manager") => Promise<void>;
+  login: (email: string) => Promise<void>;
+  register: (nome: string, email: string, telefone?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -18,20 +18,18 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       loading: false,
-      login: async (email, password) => {
+      login: async (email: string) => {
         set({ loading: true });
-        const { user, token } = await authService.login({ email, password });
+        const { user, token } = await authService.login({ email, senha: "" });
         set({ user, token, loading: false });
       },
-      register: async (name, email, password, role) => {
+      register: async (nome, email, telefone) => {
         set({ loading: true });
-        const { user, token } = await authService.register({ name, email, password, role });
+        const { user, token } = await authService.register({ nome, email, telefone, senha: "" });
         set({ user, token, loading: false });
       },
       logout: () => set({ user: null, token: null }),
     }),
-    {
-      name: "urbanize-auth",
-    }
+    { name: "urbanize-auth" }
   )
 );

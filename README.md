@@ -1,53 +1,50 @@
-# Urbanize — Plataforma de Gestão de Demandas Urbanas [![CI](https://github.com/Hyngras/urbanize/actions/workflows/ci.yml/badge.svg)](https://github.com/Hyngras/urbanize/actions/workflows/ci.yml)
+# Urbanize — Plataforma de Gestão de Demandas Urbanas
 
-Frontend Next.js (App Router) para o MVP da disciplina. Inclui Chakra UI + Tailwind, Zustand para estado global e uma API fake via rotas do Next.
+Frontend (Avaliação 1) em Next.js + TypeScript + Chakra UI + Tailwind + Zustand. API fake em memória preparada para troca futura por backend real.
 
-## Rodar local
+## Como rodar
+1. Instalar dependências
 ```bash
-cd frontend
-npm install
-npm run dev
+cd /Users/hyngridsouza/DevLocal/CESAR/urbanize/frontend
+PATH="/opt/homebrew/opt/node@20/bin:$PATH" npm install
 ```
-Acesse http://localhost:3000.
+2. Subir dev server
+```bash
+PATH="/opt/homebrew/opt/node@20/bin:$PATH" npm run dev -- --hostname 127.0.0.1 --port 4100
+```
+Acesse http://127.0.0.1:4100
 
-### Rotas principais
-- `/` landing
-- `/login` e `/cadastro` (fluxo fake, persiste token no Zustand)
-- `/dashboard` métricas básicas
-- `/demandas` listagem com filtros
-- `/demandas/nova` criação
-- `/demandas/[id]` detalhe + avanço de status
+Se a porta estiver ocupada:
+```bash
+lsof -ti tcp:4100 | xargs kill
+# ou escolha outra porta: --port 4101
+```
 
-## API Fake (Next Route Handlers)
-- `GET /api/demands` com filtros `status`, `category`, `region`, `search`
-- `POST /api/demands`
-- `GET /api/demands/:id`
-- `PATCH /api/demands/:id/status`
-- `GET /api/metrics/summary`
-- Auth fake: `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/auth/me`
+Scripts:
+- `npm run dev` — desenvolvimento
+- `npm run build` — build produção
+- `npm run start` — serve build
+- `npm run lint` — lint
 
-## Dependências chave
-- Next.js, TypeScript, Tailwind
-- Chakra UI (tema em `src/theme`)
-- Zustand (stores em `src/store`)
-- Axios (`src/services/api.ts`)
+## Documentação
+- Jornadas de usuário: `docs/jornada-usuario.md`
+- Requisitos (Avaliação 1): `docs/requisitos.md`
+- Execução/rodar o projeto: `docs/execucao.md`
 
-## Estrutura
+## Estrutura principal
 ```
 src/
-  app/ (páginas e APIs)
-  components/ (layout, forms, ui, demandas)
-  services/ (axios + services)
-  store/ (authStore, demandStore)
-  types/ (Demand, User, Auth)
-  utils/ (formatDate, statusLabel)
+  app/            # páginas (home, login, cadastro, dashboard, gestor, demandas)
+  components/     # ui, layout, forms, demandas, feedback, dashboard
+  services/       # api fake, mockData, demand/auth/metrics services
+  store/          # Zustand stores (auth, demand, ui)
+  types/          # modelos TS
+  utils/          # formatadores, labels, uuid seguro, delay mock
+  styles/         # globais
 ```
 
-## Dados de demonstração
-A API fake retorna alguns registros iniciais em `src/app/api/demands/data.ts`. Status e métricas são calculados em memória.
-
-## Próximos passos sugeridos
-- Adicionar proteção de rota com middleware de auth
-- Conectar a um backend real (Prisma/Express) para Avaliação 2
-- Cobrir formulários com validação (Zod/React Hook Form)
-- Adicionar testes e2e (Playwright) e unitários
+## Notas de produto
+- Triagem automática e sugestões de órgão são mockadas no front, prontas para integrar IA/backend.
+- Estados de loading/erro/vazio cobertos em listas, métricas e detalhes.
+- Responsivo para mobile/tablet/desktop.
+- Auth mock: use `cidadao@urbanize.com` ou `gestor@urbanize.com` para demo.

@@ -1,14 +1,8 @@
-"use client";
-
 import { Badge } from "@chakra-ui/react";
-import { DemandStatus } from "@/types/demand";
 import { statusColor, statusLabel } from "@/utils/statusLabel";
+import { DemandStatus } from "@/types/demand";
 
-interface Props {
-  status: DemandStatus;
-}
-
-export function StatusBadge({ status }: Props) {
+export function StatusBadge({ status }: { status: DemandStatus }) {
   return (
     <Badge colorScheme={statusColor[status]} rounded="full" px={3} py={1} textTransform="none">
       {statusLabel[status]}
