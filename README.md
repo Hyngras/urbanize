@@ -1,6 +1,6 @@
 # Urbanize — Plataforma de Gestão de Demandas Urbanas
 
-Frontend (Avaliação 1) em Next.js + TypeScript + Chakra UI + Tailwind + Zustand. API fake em memória preparada para troca futura por backend real.
+Frontend (Avaliação 1) em Next.js + TypeScript + Chakra UI + Tailwind + Zustand. API fake em memória preparada para troca futura por backend.
 
 ## Como rodar
 1. Instalar dependências
@@ -27,9 +27,21 @@ Scripts:
 - `npm run lint` — lint
 
 ## Documentação
-- Jornadas de usuário: `docs/jornada-usuario.md`
-- Requisitos (Avaliação 1): `docs/requisitos.md`
-- Execução/rodar o projeto: `docs/execucao.md`
+- [Jornadas de usuário](docs/jornada-usuario.md)
+- [Requisitos (Avaliação 1)](docs/requisitos.md)
+- [Execução/rodar o projeto](docs/execucao.md)
+
+## Rotas
+- [Home](/)
+- [Login](/login)
+- [Cadastro](/cadastro)
+- [Dashboard do cidadão](/dashboard)
+- [Painel do gestor](/gestor)
+- [Listagem de demandas](/demandas)
+- [Nova demanda](/demandas/nova)
+- [Detalhe da demanda](/demandas/[id])
+
+Consulte as jornadas detalhadas em [docs/jornada-usuario.md](docs/jornada-usuario.md).
 
 ## Estrutura principal
 ```

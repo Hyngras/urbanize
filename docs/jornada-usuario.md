@@ -1,18 +1,17 @@
 # Jornada do Usuário (Urbanize)
 
-## Cidadão
-1. Acessa a home e entende proposta.
-2. Clica em "Registrar demanda".
-3. Preenche dados do problema, localização e contato.
-4. Confirma envio e recebe protocolo.
-5. Acompanha status em /demandas e /dashboard (cards recentes).
-6. Visualiza detalhes (timeline, triagem automática mock) e volta à lista.
+## Cidadão (rotas)
+1. Acessa [Home](/) e entende a proposta.
+2. Faz [Cadastro](/cadastro) ou [Login](/login).
+3. Registra demanda em [Nova demanda](/demandas/nova).
+4. Acompanha status em [Listagem de demandas](/demandas) e vê detalhes em [Detalhe da demanda](/demandas/[id]).
+5. Consulta visão resumida em [Dashboard do cidadão](/dashboard).
 
-## Gestor
-1. Faz login mock (gestor@urbanize.com).
-2. Entra em /gestor: vê métricas, fila recente, filtros por status.
-3. Abre uma demanda, registra observação e atualiza status.
-4. Monitora indicadores e distribuições (mockadas) no painel.
+## Gestor (rotas)
+1. Faz [Login](/login) com perfil de gestor.
+2. Consulta métricas e fila em [Painel do gestor](/gestor).
+3. Filtra e entra em [Listagem de demandas](/demandas) ou vai direto para [Detalhe da demanda](/demandas/[id]) para atualizar status/observação.
+4. (Mock) Revisa triagem automática e aceita/ajusta encaminhamento na seção de triagem do painel do gestor.
 
 ## Fluxos de erro/estado
 - Loading: skeleton/spinners em listas e métricas.

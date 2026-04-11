@@ -6,17 +6,29 @@ import { DemandCard } from "@/components/demandas/DemandCard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useDemandStore } from "@/store/demandStore";
-import { Box, Grid, Heading, Select, Stack } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { Box, Button, Flex, Grid, Heading, Select, Stack, Text, useToast } from "@chakra-ui/react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 export default function GestorPage() {
   const { metrics } = useMetrics();
-  const { demands, fetchDemands, filters, setFilters } = useDemandStore();
+  const { demands, fetchDemands, filters, setFilters, updateDemandStatus } = useDemandStore();
+  const toast = useToast();
   const [status, setStatus] = useState(filters.status ?? "");
 
   useEffect(() => {
     fetchDemands(filters);
   }, [filters, fetchDemands]);
+
+  const triageQueue = useMemo(
+    () => demands.filter((d) => d.status === "em_analise"),
+    [demands]
+  );
+
+  const handleAccept = async (id: string, suggested?: string) => {
+    await updateDemandStatus(id, "encaminhada", suggested ?? "Aceito triagem");
+    toast({ title: "Triagem aceita e encaminhada", status: "success" });
+  };
 
   const handleStatus = (value: string) => {
     setStatus(value);
@@ -49,6 +61,35 @@ export default function GestorPage() {
             <DemandCard key={d.id} demand={d} />
           ))}
         </Stack>
+      </Box>
+
+      <Box bg="white" p={4} rounded="lg" border="1px solid" borderColor="gray.100">
+        <Flex justify="space-between" align={{ base: "flex-start", md: "center" }} mb={3} gap={3} direction={{ base: "column", md: "row" }}>
+          <Heading size="sm">Triagem automática (mock)</Heading>
+          <Text color="gray.500">Sugestões vindas da triagem inteligente para revisão do gestor.</Text>
+        </Flex>
+        {triageQueue.length === 0 ? (
+          <Text color="gray.500">Nenhuma demanda em análise no momento.</Text>
+        ) : (
+          <Stack spacing={3}>
+            {triageQueue.map((d) => (
+              <Box key={d.id} p={4} border="1px solid" borderColor="gray.100" rounded="md" bg="gray.50">
+                <Flex justify="space-between" align={{ base: "flex-start", md: "center" }} gap={3} direction={{ base: "column", md: "row" }}>
+                  <Box>
+                    <Text fontSize="sm" color="gray.500">Protocolo {d.protocolo}</Text>
+                    <Heading size="sm" mb={1}>{d.titulo}</Heading>
+                    <Text color="gray.600" mb={1}>Sugestão de órgão: {d.sugestaoEncaminhamento ?? "(não informado)"}</Text>
+                    <Text color="gray.600">Confiança mock: {Math.round((d.scoreTriagem ?? 0.7) * 100)}%</Text>
+                  </Box>
+                  <Flex gap={2} wrap="wrap">
+                    <Button size="sm" colorScheme="brand" onClick={() => handleAccept(d.id, d.sugestaoEncaminhamento ?? "Aceito triagem")}>Aceitar sugestão</Button>
+                    <Button size="sm" variant="outline" as={Link} href={`/demandas/${d.id}`}>Revisar/editar</Button>
+                  </Flex>
+                </Flex>
+              </Box>
+            ))}
+          </Stack>
+        )}
       </Box>
     </AppLayout>
   );
