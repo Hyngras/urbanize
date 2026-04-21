@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image"; // 1. Importe o componente Image do Next
 import { useAuthStore } from "@/store/authStore";
 import { FiMenu, FiX } from "react-icons/fi";
+import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/demandas", label: "Demandas" },
@@ -15,12 +16,12 @@ const links = [
 export function AppNavbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, logout } = useAuthStore();
+  const pathname = usePathname();
 
   return (
     <Box as="header" bg="white" borderBottom="1px solid" borderColor="gray.100" px={4} py={3} position="sticky" top={0} zIndex={10}>
       <Flex align="center" justify="space-between" maxW="1200px" mx="auto" gap={3}>
         
-        {/* LOGO AREA */}
         <Flex align="center" gap={2}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
             <Image 
@@ -36,12 +37,39 @@ export function AppNavbar() {
           </Link>
         </Flex>
 
-        <HStack display={{ base: "none", md: "flex" }} spacing={4}>
-          {links.map((link) => (
-            <ChakraLink key={link.href} as={Link} href={link.href} color="gray.700" fontWeight="medium">
-              {link.label}
-            </ChakraLink>
-          ))}
+        <HStack display={{ base: "none", md: "flex" }} spacing={8}>
+          {links.map((link) => {
+            const isActive = pathname === link.href;
+
+            return (
+              <ChakraLink
+                key={link.href}
+                as={Link}
+                href={link.href}
+                fontWeight="semibold"
+                fontSize="sm"
+                transition="all 0.2s"
+                color={isActive ? "#14436f" : "gray.500"}
+                position="relative"
+                _hover={{
+                  color: "#2596be", // No hover, usa o azul claro
+                  textDecoration: "none",
+                }}
+                _after={isActive ? {
+                  content: '""',
+                  position: "absolute",
+                  bottom: "-4px",
+                  left: "0",
+                  width: "100%",
+                  height: "2px",
+                  bg: "#2596be",
+                  borderRadius: "full"
+                } : undefined}
+              >
+                {link.label}
+              </ChakraLink>
+            );
+          })}
         </HStack>
 
         <HStack spacing={3}>
