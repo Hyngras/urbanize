@@ -52,7 +52,7 @@ export function AppNavbar() {
                 color={isActive ? "#14436f" : "gray.500"}
                 position="relative"
                 _hover={{
-                  color: "#2596be", // No hover, usa o azul claro
+                  color: "#2596be",
                   textDecoration: "none",
                 }}
                 _after={isActive ? {
