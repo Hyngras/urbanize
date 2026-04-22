@@ -1,5 +1,6 @@
 "use client";
 
+import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDemandStore } from "@/store/demandStore";
 import {
@@ -110,13 +111,14 @@ export default function NewDemandPage() {
   };
 
   return (
-    <AppLayout>
-      <Box maxW="820px" mx="auto">
-        {/* Header */}
-        <Flex align="center" gap={3} mb={2}>
-          <Button
-            as={Link}
-            href="/demandas"
+    <RoleProtectedRoute allowedRoles={["cidadao"]}>
+      <AppLayout>
+        <Box maxW="820px" mx="auto">
+          {/* Header */}
+          <Flex align="center" gap={3} mb={2}>
+            <Button
+              as={Link}
+              href="/demandas"
             variant="ghost"
             size="sm"
             leftIcon={<FiArrowLeft />}
@@ -381,5 +383,6 @@ export default function NewDemandPage() {
         </Stack>
       </Box>
     </AppLayout>
+    </RoleProtectedRoute>
   );
 }

@@ -4,6 +4,7 @@ import { Demand, FilterState } from "@/types/demand";
 import { MetricsSummary } from "@/types/metrics";
 import { User } from "@/types/user";
 import { newId } from "@/utils/uuid";
+import { detectRoleFromEmail } from "@/utils/roleDetection";
 
 const persistKey = "urbanize-demands";
 
@@ -97,11 +98,22 @@ export const api = {
   },
   async login(email: string): Promise<{ user: User; token: string }> {
     await mockDelay();
-    const user = mockUsers.find((u) => u.email === email) ?? mockUsers[0];
+    let user = mockUsers.find((u) => u.email === email);
+    if (!user) {
+      const role = detectRoleFromEmail(email);
+      user = {
+        id: newId(),
+        nome: role === "gestor" ? "Gestor Demo" : "Cidadão Demo",
+        email,
+        role,
+      };
+      mockUsers.push(user);
+    }
     return { user, token: newId() };
   },
-  async register(nome: string, email: string, role: User["role"], telefone?: string) {
+  async register(nome: string, email: string, telefone?: string) {
     await mockDelay();
+    const role = detectRoleFromEmail(email);
     const user: User = { id: newId(), nome, email, telefone, role };
     mockUsers.push(user);
     return { user, token: newId() };

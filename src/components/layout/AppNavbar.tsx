@@ -1,22 +1,29 @@
 "use client";
 
-import { Box, Button, Flex, HStack, IconButton, Link as ChakraLink, useDisclosure, Stack } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, IconButton, Link as ChakraLink, useDisclosure, Stack, Text } from "@chakra-ui/react";
 import Link from "next/link";
-import Image from "next/image"; // 1. Importe o componente Image do Next
+import Image from "next/image";
 import { useAuthStore } from "@/store/authStore";
 import { FiMenu, FiX } from "react-icons/fi";
 import { usePathname } from "next/navigation";
 
-const links = [
-  { href: "/demandas", label: "Demandas" },
-  { href: "/dashboard", label: "Dashboard" },
+const linksByCitizen = [
+  { href: "/dashboard", label: "Meu Dashboard" },
+  { href: "/demandas", label: "Minhas Demandas" },
+  { href: "/demandas/nova", label: "Nova Demanda" },
+];
+
+const linksByManager = [
   { href: "/gestor", label: "Painel do Gestor" },
+  { href: "/demandas", label: "Todas as Demandas" },
 ];
 
 export function AppNavbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, logout } = useAuthStore();
   const pathname = usePathname();
+
+  const links = user?.role === "gestor" ? linksByManager : linksByCitizen;
 
   return (
     <Box as="header" bg="white" borderBottom="1px solid" borderColor="gray.100" px={4} py={3} position="sticky" top={0} zIndex={10}>
@@ -74,9 +81,14 @@ export function AppNavbar() {
 
         <HStack spacing={3}>
           {user ? (
-            <Button size="sm" variant="outline" colorScheme="brand" onClick={logout}>
-              Sair
-            </Button>
+            <>
+              <Text fontSize="sm" color="gray.600" display={{ base: "none", md: "block" }}>
+                {user.nome} ({user.role === "gestor" ? "Gestor" : "Cidadão"})
+              </Text>
+              <Button size="sm" variant="outline" colorScheme="brand" onClick={logout}>
+                Sair
+              </Button>
+            </>
           ) : (
             <>
               <Button as={Link} href="/login" size="sm" variant="ghost">

@@ -1,4 +1,4 @@
-// Gera IDs seguros no browser ou no Node sem depender de crypto do Node em runtime cliente
+// Gera um ID único pro navegador
 export const newId = (): string => {
   if (typeof globalThis !== "undefined" && typeof globalThis.crypto !== "undefined") {
     if ("randomUUID" in globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
@@ -10,6 +10,5 @@ export const newId = (): string => {
       return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
     }
   }
-  // fallback simples
   return `id-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
 };

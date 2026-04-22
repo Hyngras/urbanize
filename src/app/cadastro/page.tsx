@@ -4,19 +4,32 @@ import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { useAuth } from "@/hooks/useAuth";
 import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, Stack, Text, useToast } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CadastroPage() {
-  const { register, loading } = useAuth();
+  const { register, loading, user } = useAuth();
+  const router = useRouter();
   const toast = useToast();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
 
+  useEffect(() => {
+    if (user) {
+      const destination = user.role === "gestor" ? "/gestor" : "/dashboard";
+      router.push(destination);
+    }
+  }, [user, router]);
+
   const handleSubmit = async () => {
-    await register(nome, email, telefone);
-    toast({ title: "Conta criada (mock)", status: "success" });
+    try {
+      await register(nome, email, telefone);
+      toast({ title: "Conta criada com sucesso!", status: "success", duration: 2000 });
+    } catch {
+      toast({ title: "Erro ao criar conta", status: "error" });
+    }
   };
 
   return (

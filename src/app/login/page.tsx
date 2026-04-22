@@ -4,18 +4,31 @@ import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { useAuth } from "@/hooks/useAuth";
 import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, Stack, Text, useToast } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const { login, loading } = useAuth();
+  const { login, loading, user } = useAuth();
+  const router = useRouter();
   const toast = useToast();
   const [email, setEmail] = useState("cidadao@urbanize.com");
   const [senha, setSenha] = useState("demo");
 
+  useEffect(() => {
+    if (user) {
+      const destination = user.role === "gestor" ? "/gestor" : "/dashboard";
+      router.push(destination);
+    }
+  }, [user, router]);
+
   const handleSubmit = async () => {
-    await login(email);
-    toast({ title: "Login mockado realizado", status: "success" });
+    try {
+      await login(email);
+      toast({ title: "Login realizado com sucesso!", status: "success", duration: 2000 });
+    } catch {
+      toast({ title: "Erro ao fazer login", status: "error" });
+    }
   };
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DemandCard } from "@/components/demandas/DemandCard";
@@ -40,14 +41,15 @@ export default function DashboardPage() {
   }, [fetchDemands]);
 
   return (
-    <AppLayout>
-      {/* Header */}
-      <Flex
-        justify="space-between"
-        align={{ base: "start", md: "center" }}
-        direction={{ base: "column", md: "row" }}
-        gap={4}
-        mb={8}
+    <RoleProtectedRoute allowedRoles={["cidadao"]}>
+      <AppLayout>
+        {/* Header */}
+        <Flex
+          justify="space-between"
+          align={{ base: "start", md: "center" }}
+          direction={{ base: "column", md: "row" }}
+          gap={4}
+          mb={8}
       >
         <VStack align="start" spacing={1}>
           <HStack spacing={2}>
@@ -136,5 +138,6 @@ export default function DashboardPage() {
         </Box>
       </Box>
     </AppLayout>
+    </RoleProtectedRoute>
   );
 }

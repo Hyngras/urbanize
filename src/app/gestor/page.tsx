@@ -1,5 +1,6 @@
 "use client";
 
+import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DemandCard } from "@/components/demandas/DemandCard";
@@ -60,7 +61,8 @@ export default function GestorPage() {
   };
 
   return (
-    <AppLayout>
+    <RoleProtectedRoute allowedRoles={["gestor"]}>
+      <AppLayout>
       {/* Header */}
       <Flex
         justify="space-between"
@@ -290,5 +292,6 @@ export default function GestorPage() {
         </Box>
       </Box>
     </AppLayout>
+    </RoleProtectedRoute>
   );
 }
