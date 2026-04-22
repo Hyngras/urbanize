@@ -359,14 +359,14 @@ export default function NewDemandPage() {
                 as={Link}
                 href="/demandas"
                 variant="ghost"
-                size="lg"
+                size="sm"
                 color="gray.500"
               >
                 Cancelar
               </Button>
               <Button
                 colorScheme="brand"
-                size="lg"
+                size="sm"
                 onClick={handleSubmit}
                 isLoading={loading}
                 leftIcon={<FiSend />}
