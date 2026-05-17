@@ -29,10 +29,10 @@ export function AuthForm({ mode }: Props) {
   const handleSubmit = async () => {
     try {
       if (mode === "login") {
-        await login(email);
+        await login(email, password);
         toast({ title: "Login realizado", status: "success" });
       } else {
-        await register(name, email);
+        await register(name, email, password, undefined, role);
         toast({ title: "Cadastro realizado", status: "success" });
       }
     } catch (error) {
@@ -71,7 +71,7 @@ export function AuthForm({ mode }: Props) {
           {mode === "login" ? "Entrar" : "Criar conta"}
         </Button>
         <Text fontSize="sm" color="gray.500">
-          Fluxo fake: credenciais são simuladas e token é gravado no Zustand.
+          Autenticação real com JWT, cookies HTTP-only e perfis de usuário.
         </Text>
       </Stack>
     </Box>

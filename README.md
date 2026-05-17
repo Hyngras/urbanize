@@ -1,10 +1,10 @@
 # Urbanize
 
-> Plataforma de gestão de demandas urbanas com diferenciação de perfis (Cidadão e Gestor)
+> Plataforma de gestão de demandas urbanas com backend real, banco persistente e diferenciação de perfis (Cidadão e Gestor)
 
 ![Home Page](img/11-home-completa.png)
 
-**Stack:** Next.js 16 • TypeScript • Chakra UI • Tailwind • Zustand • MSW
+**Stack:** Next.js 16 • TypeScript • Chakra UI • Zustand • Node.js • Express • Prisma ORM • JWT • Cookies • Redis opcional • Cron Jobs
 
 ## Início rápido
 
@@ -12,8 +12,15 @@
 # Instalar dependências
 npm install
 
-# Rodar servidor de desenvolvimento
-npm run dev -- --hostname 127.0.0.1 --port 4100
+# Preparar banco local
+npm run db:migrate
+npm run db:seed
+
+# Rodar backend Express
+npm run dev:backend
+
+# Rodar frontend
+npm run dev:frontend
 
 # Acessar
  http://127.0.0.1:4100
@@ -23,13 +30,16 @@ npm run dev -- --hostname 127.0.0.1 --port 4100
 - Cidadão: `cidadao@urbanize.com` / `demo`
 - Gestor: `gestor@urbanize.com` / `demo`
 
+**Backend:** `http://localhost:4000/api`  
+**Frontend:** `http://127.0.0.1:4100`
+
 <details>
 <summary>Scripts disponíveis</summary>
 
-- `npm run dev` - Servidor de desenvolvimento
-- `npm run build` - Build de produção
-- `npm run start` - Servir build
-- `npm run lint` - Executar linter
+- `npm run dev:frontend` - Servidor Next.js de desenvolvimento
+- `npm run dev:backend` - API Express com Prisma, JWT, Redis opcional e cron
+- `npm run db:migrate` - Criar/aplicar migrações Prisma
+- `npm run db:seed` - Popular usuários e demandas de demonstração
 
 </details>
 
@@ -52,11 +62,12 @@ npm run dev -- --hostname 127.0.0.1 --port 4101
 
 ### Autenticação e perfis
 
-O sistema detecta automaticamente o perfil do usuário pelo email:
+O perfil do usuário é definido no cadastro e validado no backend:
 
-- `@cidadaourbanize.com` → Perfil **Cidadão**
-- `@gestorurbanize.com` → Perfil **Gestor**
-- Outros domínios → Perfil **Cidadão** (padrão)
+- **Cidadão** → cria e acompanha suas próprias demandas
+- **Gestor público** → visualiza a fila geral, revisa triagens e altera status
+
+A autenticação usa senha com hash, JWT, cookie HTTP-only e proteção por perfil.
 
 ![Tela de Login](img/01-login.png)
 
@@ -89,7 +100,7 @@ Consulte a [documentação de jornadas](docs/jornada-usuario.md) para fluxos det
 - ✅ Visualizar todas as demandas da cidade
 - ✅ Alterar status de demandas
 - ✅ Adicionar observações
-- ✅ Revisar triagem automática (mock)
+- ✅ Revisar triagem automática
 - ✅ Visualizar métricas gerais
 - ❌ Criar novas demandas
 
@@ -117,13 +128,13 @@ O sistema implementa controle de acesso automático:
 - Cidadão tentando acessar `/gestor` → Redirecionado para `/dashboard`
 - Gestor tentando acessar `/dashboard` ou `/demandas/nova` → Redirecionado para `/gestor`
 
-### Triagem inteligente (Mock)
+### Triagem inteligente
 
-Demonstração de funcionalidade futura com IA:
-- Classificação automática de categoria
+Regra de negócio executada no backend:
+- Classificação por categoria informada
 - Sugestão de órgão responsável
-- Score de confiança
-- Pronto para integração com backend
+- Score simples de confiança
+- Histórico inicial da demanda gravado no banco
 
 ![Home - Como Funciona](img/06-home-como-funciona.png)
 
@@ -134,7 +145,7 @@ Demonstração de funcionalidade futura com IA:
 ```
 src/
 ├── app/                    # Páginas Next.js (App Router)
-│   ├── api/               # API Routes (mock)
+│   ├── api/               # Rotas legadas da etapa 1
 │   ├── cadastro/          # Página de cadastro
 │   ├── dashboard/         # Dashboard do cidadão
 │   ├── demandas/          # Listagem e detalhes
@@ -150,8 +161,16 @@ src/
 │   ├── layout/           # Navbar, footer, layout
 │   └── ui/               # Badges, títulos
 ├── hooks/                # Custom hooks
-├── mocks/                # MSW handlers
-├── services/             # Camada de API
+├── mocks/                # Handlers legados da etapa 1
+├── server/               # Backend Express + Prisma
+│   ├── config/           # Variáveis, Prisma e Redis
+│   ├── controllers/      # Entrada HTTP e validação
+│   ├── services/         # Regras de negócio
+│   ├── repositories/     # Acesso ao banco
+│   ├── routes/           # Endpoints REST
+│   ├── middlewares/      # Auth e erros
+│   └── jobs/             # Cron de métricas
+├── services/             # Cliente HTTP e services do frontend
 ├── store/                # Zustand stores
 ├── types/                # TypeScript types
 └── utils/                # Funções auxiliares
@@ -166,7 +185,7 @@ src/
 - `uiStore` - Estado da UI
 
 **Services:**
-- `api.ts` - Mock da API com localStorage
+- `api.ts` - Cliente HTTP Axios integrado ao backend Express
 - `authService.ts` - Login e registro
 - `demandService.ts` - CRUD de demandas
 - `metricsService.ts` - Métricas e estatísticas
@@ -181,6 +200,9 @@ src/
 
 ## Documentação
 
+📖 **[Avaliação 2 — Backend real](docs/avaliacao-2-backend.md)**  
+Arquitetura Express, Prisma, autenticação JWT, Redis opcional, cron jobs e endpoints
+
 📖 **[Jornadas e Perfis de Usuário](docs/jornada-usuario.md)**  
 Fluxos detalhados, permissões, matriz de proteção de rotas e guia de testes
 
@@ -194,13 +216,12 @@ Checklist completo de conformidade com todos os requisitos implementados
 - TypeScript 5.7.3 (strict mode)
 - Chakra UI 2.10.9 (sistema de design)
 - Tailwind CSS 4.2.2
-- React 19.1.0
+- React 18.3.1
 
 **Estado e dados:**
 - Zustand 5.0.12 (gerenciamento de estado)
-- MSW 2.13.1 (mock de API)
 - Axios 1.15.2 (cliente HTTP)
-- localStorage (persistência mock)
+- SQLite via Prisma (persistência local)
 
 **Qualidade:**
 - ESLint 9.39.4
@@ -220,11 +241,16 @@ Checklist completo de conformidade com todos os requisitos implementados
 ```json
 {
   "next": "16.2.4",
-  "react": "19.1.0",
+  "react": "18.3.1",
+  "express": "^5.2.1",
+  "@prisma/client": "^7.8.0",
+  "@prisma/adapter-better-sqlite3": "^7.8.0",
+  "bcryptjs": "^3.0.3",
+  "jsonwebtoken": "^9.0.3",
+  "ioredis": "^5.10.1",
+  "node-cron": "^4.2.1",
   "@chakra-ui/react": "2.10.9",
-  "tailwindcss": "4.2.2",
   "zustand": "5.0.12",
-  "msw": "2.13.1",
   "axios": "1.15.2",
   "typescript": "5.7.3"
 }
@@ -234,11 +260,11 @@ Checklist completo de conformidade com todos os requisitos implementados
 
 ## Notas de desenvolvimento
 
-**API Mock:**  
-A aplicação usa MSW (Mock Service Worker) para simular uma API completa. Os dados são armazenados no localStorage do navegador, permitindo persistência entre recarregamentos. Pronto para substituição por backend real.
+**API real:**  
+A aplicação usa backend Express em `src/server`, persistência Prisma/SQLite e autenticação JWT. O Redis é opcional para cache de métricas e o cron consolida snapshots periódicos em `MetricsSnapshot`.
 
-**Detecção de perfil:**  
-Implementado em `src/utils/roleDetection.ts`. Detecta automaticamente o perfil pelo domínio do email no momento do login/cadastro.
+**Perfis:**  
+O perfil é definido no cadastro e armazenado no banco. O backend valida permissões por rota e impede alterações de status por cidadãos.
 
 **Proteção de rotas:**  
 Componente `RoleProtectedRoute` em `src/components/auth/` verifica autenticação e permissões antes de renderizar páginas protegidas.
@@ -246,12 +272,23 @@ Componente `RoleProtectedRoute` em `src/components/auth/` verifica autenticaçã
 **Estados visuais:**  
 Todos os componentes de lista implementam loading states (skeleton), empty states e error states para melhor UX.
 
+## Avaliação 2 - Status
+
+✅ **Backend funcional:** Express organizado em rotas, controllers, services e repositories  
+✅ **Banco persistente:** Prisma ORM com SQLite e migrações  
+✅ **Autenticação real:** Cadastro, login, JWT, cookie e logout  
+✅ **Perfis:** Cidadão e gestor com permissões distintas  
+✅ **CRUD principal:** Demandas com filtros, detalhe, criação e alteração de status  
+✅ **Integração frontend + backend:** Services usam Axios para consumir API real  
+✅ **Redis opcional:** Cache de métricas quando `REDIS_URL` está configurado  
+✅ **Cron opcional:** Snapshot periódico de métricas  
+
 ## Avaliação 1 - Status
 
 ✅ **Stack obrigatória:** Next.js, TypeScript, Chakra UI  
 ✅ **10 funcionalidades MVP:** Todas implementadas  
 ✅ **Páginas obrigatórias:** Home, Login, Cadastro, Dashboard, Gestor, Demandas  
-✅ **Extras:** Diferenciação de perfis, proteção de rotas, triagem mock, métricas  
+✅ **Extras:** Diferenciação de perfis, proteção de rotas, triagem, métricas  
 ✅ **Responsividade:** Mobile, tablet e desktop  
 ✅ **Estados de feedback:** Loading, error, empty em todas as listas
 

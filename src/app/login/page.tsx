@@ -24,10 +24,10 @@ export default function LoginPage() {
 
   const handleSubmit = async () => {
     try {
-      await login(email);
+      await login(email, senha);
       toast({ title: "Login realizado com sucesso!", status: "success", duration: 2000 });
     } catch {
-      toast({ title: "Erro ao fazer login", status: "error" });
+      toast({ title: "Email ou senha inválidos", status: "error" });
     }
   };
 
@@ -37,7 +37,7 @@ export default function LoginPage() {
       <Flex align="center" justify="center" py={12} px={4}>
         <Box bg="white" p={8} rounded="lg" border="1px solid" borderColor="gray.100" maxW="md" w="full">
           <Heading mb={2}>Entrar</Heading>
-          <Text mb={6} color="gray.600">Use um email mock: cidadao@urbanize.com ou gestor@urbanize.com</Text>
+          <Text mb={6} color="gray.600">Use as credenciais: cidadao@urbanize.com/demo ou gestor@urbanize.com/demo</Text>
           <Stack spacing={4}>
             <FormControl>
               <FormLabel>Email</FormLabel>

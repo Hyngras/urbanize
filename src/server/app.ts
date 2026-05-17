@@ -1,0 +1,23 @@
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import express from "express";
+import { env } from "./config/env";
+import { errorMiddleware, notFoundMiddleware } from "./middlewares/errorMiddleware";
+import { routes } from "./routes";
+import "./types";
+
+export const app = express();
+
+app.use(
+  cors({
+    origin: env.frontendUrl,
+    credentials: true,
+  })
+);
+app.use(express.json());
+app.use(cookieParser());
+
+app.use("/api", routes);
+
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
