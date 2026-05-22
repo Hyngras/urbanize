@@ -6,6 +6,7 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DemandCard } from "@/components/demandas/DemandCard";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useDemandStore } from "@/store/demandStore";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Box,
   Button,
@@ -35,6 +36,8 @@ import {
 export default function DashboardPage() {
   const { metrics } = useMetrics();
   const { demands, fetchDemands } = useDemandStore();
+  const { user } = useAuth();
+  const myDemands = demands.filter((d) => d.emailSolicitante === user?.email);
 
   useEffect(() => {
     fetchDemands();
@@ -123,10 +126,10 @@ export default function DashboardPage() {
         </Flex>
         <Box px={6} py={4}>
           <Stack spacing={3}>
-            {demands.slice(0, 4).map((d) => (
+            {myDemands.slice(0, 4).map((d) => (
               <DemandCard key={d.id} demand={d} />
             ))}
-            {demands.length === 0 && (
+            {myDemands.length === 0 && (
               <Flex direction="column" align="center" py={10} gap={3}>
                 <Circle size="48px" bg="gray.100" color="gray.400">
                   <Icon as={FiInbox} boxSize={5} />

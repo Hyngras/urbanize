@@ -6,6 +6,7 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DemandCard } from "@/components/demandas/DemandCard";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useDemandStore } from "@/store/demandStore";
+import { DemandStatus } from "@/types/demand";
 import {
   Box,
   Button,
@@ -57,7 +58,7 @@ export default function GestorPage() {
 
   const handleStatus = (value: string) => {
     setStatus(value);
-    setFilters({ ...filters, status: value || undefined });
+    setFilters({ ...filters, status: (value || undefined) as DemandStatus | undefined });
   };
 
   return (

@@ -14,7 +14,7 @@ const makeDemand = (partial: Partial<Demand>): Demand => ({
   prioridade: "media",
   status: "registrada",
   nomeSolicitante: "Cidadão",
-  emailSolicitante: "cidadao@exemplo.com",
+  emailSolicitante: "cidadao@urbanize.com",
   telefoneSolicitante: "",
   endereco: {
     endereco: "Rua Exemplo, 123",

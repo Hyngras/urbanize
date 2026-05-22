@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { authService } from "@/services/authService";
-import { User } from "@/types/user";
+import { User, DemandRole } from "@/types/user";
 
 interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string) => Promise<void>;
-  register: (nome: string, email: string, telefone?: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, senha: string) => Promise<void>;
+  register: (nome: string, email: string, senha: string, telefone?: string, role?: DemandRole) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -18,17 +18,30 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       loading: false,
-      login: async (email: string) => {
+      login: async (email: string, senha: string) => {
         set({ loading: true });
-        const { user, token } = await authService.login({ email, senha: "" });
-        set({ user, token, loading: false });
+        try {
+          const { user, token } = await authService.login({ email, senha });
+          set({ user, token, loading: false });
+        } catch (error) {
+          set({ loading: false });
+          throw error;
+        }
       },
-      register: async (nome, email, telefone) => {
+      register: async (nome, email, senha, telefone, role = "cidadao") => {
         set({ loading: true });
-        const { user, token } = await authService.register({ nome, email, telefone, senha: "" });
-        set({ user, token, loading: false });
+        try {
+          const { user, token } = await authService.register({ nome, email, telefone, senha, role });
+          set({ user, token, loading: false });
+        } catch (error) {
+          set({ loading: false });
+          throw error;
+        }
       },
-      logout: () => set({ user: null, token: null }),
+      logout: async () => {
+        await authService.logout().catch(() => undefined);
+        set({ user: null, token: null });
+      },
     }),
     { name: "urbanize-auth" }
   )

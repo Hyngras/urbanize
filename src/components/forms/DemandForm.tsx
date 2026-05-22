@@ -15,14 +15,14 @@ import { useState } from "react";
 import { useDemandStore } from "@/store/demandStore";
 import { Demand, DemandCategory } from "@/types/demand";
 
-const categories: DemandCategory[] = ["iluminacao", "vias", "coleta", "saneamento", "fiscalizacao"];
+const categories: DemandCategory[] = ["vias_publicas", "iluminacao_publica", "coleta_de_lixo", "saneamento", "fiscalizacao", "zeladoria", "outros"];
 
 export function DemandForm() {
   const toast = useToast();
-  const { create, loading } = useDemandStore();
+  const { createDemand, loading } = useDemandStore();
   const [form, setForm] = useState<Partial<Demand>>({
-    category: "iluminacao",
-    status: "aberta",
+    categoria: "iluminacao_publica",
+    status: "registrada",
   });
 
   const handleChange = (field: keyof Demand, value: string) => {
@@ -30,27 +30,28 @@ export function DemandForm() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.description || !form.location?.address) {
+    if (!form.titulo || !form.descricao || !form.endereco?.endereco) {
       toast({ title: "Preencha os campos obrigatórios", status: "warning" });
       return;
     }
     const payload = {
       ...form,
-      category: (form.category as DemandCategory) ?? "iluminacao",
-      status: "aberta" as const,
-      location: {
-        lat: form.location?.lat ?? -8.05,
-        lng: form.location?.lng ?? -34.9,
-        address: form.location?.address ?? "Recife, PE",
-        region: form.location?.region ?? "Centro",
+      categoria: (form.categoria as DemandCategory) ?? "iluminacao_publica",
+      prioridade: form.prioridade ?? "media" as const,
+      status: "registrada" as const,
+      nomeSolicitante: form.nomeSolicitante ?? "Cidadão",
+      emailSolicitante: form.emailSolicitante ?? "cidadao@exemplo.com",
+      endereco: {
+        endereco: form.endereco?.endereco ?? "Recife, PE",
+        bairro: form.endereco?.bairro ?? "Centro",
+        cidade: form.endereco?.cidade ?? "Recife",
       },
-      citizenName: form.citizenName ?? "Cidadão", 
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    } as Omit<Demand, "id">;
+      origem: "cidadao" as const,
+      historico: [],
+    } as Omit<Demand, "id" | "protocolo" | "criadaEm" | "atualizadaEm">;
 
     try {
-      const created = await create(payload);
+      const created = await createDemand(payload);
       toast({ title: "Demanda registrada", status: "success" });
       return created;
     } catch (error) {
@@ -64,17 +65,17 @@ export function DemandForm() {
       <Stack spacing={4}>
         <FormControl isRequired>
           <FormLabel>Título</FormLabel>
-          <Input value={form.title ?? ""} onChange={(e) => handleChange("title", e.target.value)} placeholder="Ex: Buraco em via" />
+          <Input value={form.titulo ?? ""} onChange={(e) => handleChange("titulo", e.target.value)} placeholder="Ex: Buraco em via" />
         </FormControl>
         <FormControl isRequired>
           <FormLabel>Descrição</FormLabel>
-          <Textarea value={form.description ?? ""} onChange={(e) => handleChange("description", e.target.value)} placeholder="Explique o problema" />
+          <Textarea value={form.descricao ?? ""} onChange={(e) => handleChange("descricao", e.target.value)} placeholder="Explique o problema" />
         </FormControl>
         <FormControl isRequired>
           <FormLabel>Categoria</FormLabel>
           <Select
-            value={(form.category as string) ?? "iluminacao"}
-            onChange={(e) => handleChange("category", e.target.value)}
+            value={(form.categoria as string) ?? "iluminacao_publica"}
+            onChange={(e) => handleChange("categoria", e.target.value)}
           >
             {categories.map((c) => (
               <option key={c} value={c}>
@@ -86,27 +87,27 @@ export function DemandForm() {
         <FormControl isRequired>
           <FormLabel>Endereço</FormLabel>
           <Input
-            value={form.location?.address ?? ""}
+            value={form.endereco?.endereco ?? ""}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
-                location: { ...prev.location, address: e.target.value },
+                endereco: { ...prev.endereco, endereco: e.target.value, bairro: prev.endereco?.bairro ?? "", cidade: prev.endereco?.cidade ?? "Recife" },
               }))
             }
-            placeholder="Rua, número, bairro"
+            placeholder="Rua, número"
           />
         </FormControl>
         <FormControl>
-          <FormLabel>Região</FormLabel>
+          <FormLabel>Bairro</FormLabel>
           <Input
-            value={form.location?.region ?? ""}
+            value={form.endereco?.bairro ?? ""}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
-                location: { ...prev.location, region: e.target.value },
+                endereco: { ...prev.endereco, endereco: prev.endereco?.endereco ?? "", bairro: e.target.value, cidade: prev.endereco?.cidade ?? "Recife" },
               }))
             }
-            placeholder="Zona Norte, Sul, etc"
+            placeholder="Centro, Boa Viagem, etc"
           />
         </FormControl>
         <Button colorScheme="brand" onClick={handleSubmit} isLoading={loading}>

@@ -25,10 +25,10 @@ export function Header() {
       <HStack spacing={4}>
         <Box textAlign="right">
           <Text fontWeight="semibold" lineHeight="short">
-            {user?.name ?? "Visitante"}
+            {user?.nome ?? "Visitante"}
           </Text>
           <Text fontSize="sm" color="gray.500">
-            {user?.role === "manager" ? "Gestor" : user ? "Cidadão" : "Não autenticado"}
+            {user?.role === "gestor" ? "Gestor" : user ? "Cidadão" : "Não autenticado"}
           </Text>
         </Box>
         <Button size="sm" variant="outline" onClick={logout} leftIcon={<Icon as={FaSignOutAlt} />}>

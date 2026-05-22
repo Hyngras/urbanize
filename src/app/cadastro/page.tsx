@@ -3,7 +3,7 @@
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { useAuth } from "@/hooks/useAuth";
-import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, Stack, Text, useToast } from "@chakra-ui/react";
+import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, Select, Stack, Text, useToast } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,8 @@ export default function CadastroPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [senha, setSenha] = useState("");
+  const [role, setRole] = useState<"cidadao" | "gestor">("cidadao");
 
   useEffect(() => {
     if (user) {
@@ -25,7 +27,7 @@ export default function CadastroPage() {
 
   const handleSubmit = async () => {
     try {
-      await register(nome, email, telefone);
+      await register(nome, email, senha, telefone, role);
       toast({ title: "Conta criada com sucesso!", status: "success", duration: 2000 });
     } catch {
       toast({ title: "Erro ao criar conta", status: "error" });
@@ -38,7 +40,7 @@ export default function CadastroPage() {
       <Flex align="center" justify="center" py={12} px={4}>
         <Box bg="white" p={8} rounded="lg" border="1px solid" borderColor="gray.100" maxW="md" w="full">
           <Heading mb={2}>Criar conta</Heading>
-          <Text mb={6} color="gray.600">Cadastre-se como cidadão para registrar demandas.</Text>
+          <Text mb={6} color="gray.600">Cadastre-se como cidadão ou gestor público para acessar a plataforma.</Text>
           <Stack spacing={4}>
             <FormControl>
               <FormLabel>Nome</FormLabel>
@@ -51,6 +53,17 @@ export default function CadastroPage() {
             <FormControl>
               <FormLabel>Telefone</FormLabel>
               <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Senha</FormLabel>
+              <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Perfil</FormLabel>
+              <Select value={role} onChange={(e) => setRole(e.target.value as "cidadao" | "gestor")}>
+                <option value="cidadao">Cidadão</option>
+                <option value="gestor">Gestor público</option>
+              </Select>
             </FormControl>
             <Button colorScheme="brand" onClick={handleSubmit} isLoading={loading}>Criar conta</Button>
             <Button as={Link} href="/login" variant="ghost">Já tenho conta</Button>

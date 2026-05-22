@@ -2,8 +2,8 @@ import { User } from "@/types/user";
 import { randomUUID } from "crypto";
 
 let users: User[] = [
-  { id: randomUUID(), name: "Gestor Demo", email: "gestor@urbanize.com", role: "manager" },
-  { id: randomUUID(), name: "Cidadão Demo", email: "cidadao@urbanize.com", role: "citizen" },
+  { id: randomUUID(), nome: "Gestor Demo", email: "gestor@urbanize.com", role: "gestor" },
+  { id: randomUUID(), nome: "Cidadão Demo", email: "cidadao@urbanize.com", role: "cidadao" },
 ];
 
 export function getUserByEmail(email: string) {

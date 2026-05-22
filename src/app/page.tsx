@@ -164,18 +164,6 @@ function Hero() {
               >
                 Registrar demanda
               </Button>
-              <Button
-                as={Link}
-                href="/gestor"
-                variant="outline"
-                size="lg"
-                color="white"
-                borderColor="whiteAlpha.400"
-                _hover={{ bg: "whiteAlpha.200", borderColor: "white" }}
-                transition="all 0.2s"
-              >
-                Painel do gestor
-              </Button>
             </Stack>
           </Stack>
         </MotionBox>

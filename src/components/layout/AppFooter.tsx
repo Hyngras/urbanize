@@ -11,7 +11,7 @@ export function AppFooter() {
         </Stack>
         <Stack spacing={1}>
           <ChakraLink as={Link} href="/demandas" color="gray.200">Demandas</ChakraLink>
-          <ChakraLink as={Link} href="/gestor" color="gray.200">Painel do Gestor</ChakraLink>
+
         </Stack>
         <Stack spacing={1}>
           <Text color="gray.400">Triagem inteligente pronta para integrar com IA.</Text>

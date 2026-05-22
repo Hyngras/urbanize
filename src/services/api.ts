@@ -7,9 +7,17 @@ import { newId } from "@/utils/uuid";
 import { detectRoleFromEmail } from "@/utils/roleDetection";
 
 const persistKey = "urbanize-demands";
+const persistVersion = "urbanize-demands-v";
+const CURRENT_VERSION = "2";
 
 const loadDemands = (): Demand[] => {
   if (typeof localStorage === "undefined") return [...mockDemands];
+  const version = localStorage.getItem(persistVersion);
+  if (version !== CURRENT_VERSION) {
+    localStorage.removeItem(persistKey);
+    localStorage.setItem(persistVersion, CURRENT_VERSION);
+    return [...mockDemands];
+  }
   const stored = localStorage.getItem(persistKey);
   if (!stored) return [...mockDemands];
   try {
@@ -42,7 +50,7 @@ export const api = {
     await mockDelay();
     return cache.find((d) => d.id === id);
   },
-  async createDemand(payload: Omit<Demand, "id" | "protocolo" | "criacao">): Promise<Demand> {
+  async createDemand(payload: Omit<Demand, "id" | "protocolo" | "criadaEm" | "atualizadaEm">): Promise<Demand> {
     await mockDelay();
     const demand: Demand = {
       ...payload,
@@ -67,7 +75,7 @@ export const api = {
             historico: [
               ...d.historico,
               {
-                id: randomUUID(),
+                id: newId(),
                 status,
                 descricao: observacaoGestor ?? "Atualização de status",
                 data: new Date().toISOString(),

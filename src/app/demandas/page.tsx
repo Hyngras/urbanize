@@ -1,5 +1,6 @@
 "use client";
 
+import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { DemandCard } from "@/components/demandas/DemandCard";
 import { DemandFilters } from "@/components/demandas/DemandFilters";
@@ -7,6 +8,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { useDemands } from "@/hooks/useDemands";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Box,
   Button,
@@ -24,8 +26,11 @@ import { FiPlus, FiList } from "react-icons/fi";
 
 export default function DemandListPage() {
   const { demands, loading, error } = useDemands();
+  const { user } = useAuth();
+  const visibleDemands = user?.role === "gestor" ? demands : demands.filter((d) => d.emailSolicitante === user?.email);
 
   return (
+    <RoleProtectedRoute allowedRoles={["cidadao", "gestor"]}>
     <AppLayout>
       {/* Header */}
       <Flex
@@ -38,42 +43,51 @@ export default function DemandListPage() {
         <VStack align="start" spacing={1}>
           <HStack spacing={2}>
             <Icon as={FiList} color="brand.500" boxSize={5} />
-            <Heading size="lg" color="gray.800">Demandas</Heading>
+            <Heading size="lg" color="gray.800">{user?.role === "gestor" ? "Todas as Demandas" : "Minhas Demandas"}</Heading>
           </HStack>
-          <Text color="gray.500" fontSize="sm">Visualize e filtre as solicitações</Text>
+          <Text color="gray.500" fontSize="sm">
+            {user?.role === "gestor" ? "Visualize e filtre as solicitações da cidade" : "Visualize e filtre as suas solicitações"}
+          </Text>
         </VStack>
-        <Button
-          as={Link}
-          href="/demandas/nova"
-          colorScheme="brand"
-          leftIcon={<FiPlus />}
-          shadow="sm"
-          _hover={{ shadow: "md", transform: "translateY(-1px)" }}
-          transition="all 0.2s"
-        >
-          Nova demanda
-        </Button>
+        {user?.role === "cidadao" && (
+          <Button
+            as={Link}
+            href="/demandas/nova"
+            colorScheme="brand"
+            leftIcon={<FiPlus />}
+            shadow="sm"
+            _hover={{ shadow: "md", transform: "translateY(-1px)" }}
+            transition="all 0.2s"
+          >
+            Nova demanda
+          </Button>
+        )}
       </Flex>
 
       <DemandFilters />
 
       {loading && <LoadingState />}
       {error && <ErrorState message={error} />}
-      {!loading && !error && demands.length === 0 && (
-        <EmptyState message="Nenhuma demanda encontrada" actionLabel="Criar demanda" actionHref="/demandas/nova" />
+      {!loading && !error && visibleDemands.length === 0 && (
+        <EmptyState
+          message="Nenhuma demanda encontrada"
+          actionLabel={user?.role === "cidadao" ? "Criar demanda" : undefined}
+          actionHref={user?.role === "cidadao" ? "/demandas/nova" : undefined}
+        />
       )}
-      {!loading && !error && demands.length > 0 && (
+      {!loading && !error && visibleDemands.length > 0 && (
         <>
           <Text fontSize="xs" color="gray.400" fontWeight="semibold" mb={3} textTransform="uppercase" letterSpacing="wider">
-            {demands.length} {demands.length === 1 ? "resultado" : "resultados"}
+            {visibleDemands.length} {visibleDemands.length === 1 ? "resultado" : "resultados"}
           </Text>
           <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-            {demands.map((demand) => (
+            {visibleDemands.map((demand) => (
               <DemandCard key={demand.id} demand={demand} />
             ))}
           </Grid>
         </>
       )}
     </AppLayout>
+    </RoleProtectedRoute>
   );
 }

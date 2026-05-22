@@ -11,12 +11,16 @@ import { formatLocation } from "@/utils/locationLabel";
 import { Box, Button, Flex, Grid, Heading, Stack, Text, Textarea, useToast } from "@chakra-ui/react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function DemandDetailPage() {
   const params = useParams<{ id: string }>();
   const toast = useToast();
   const { selected, fetchDemandById, updateDemandStatus, loading } = useDemandStore();
   const [observacao, setObservacao] = useState("");
+
+  const { user } = useAuth();
 
   useEffect(() => {
     if (params?.id) fetchDemandById(params.id);
@@ -36,6 +40,7 @@ export default function DemandDetailPage() {
   };
 
   return (
+    <RoleProtectedRoute allowedRoles={["cidadao", "gestor"]}>
     <AppLayout>
       <Flex justify="space-between" align={{ base: "flex-start", md: "center" }} mb={4} gap={3}>
         <Box>
@@ -72,15 +77,18 @@ export default function DemandDetailPage() {
             <Text>Órgão sugerido: {selected.sugestaoEncaminhamento ?? "—"}</Text>
             <Text>Confiança: {Math.round((selected.scoreTriagem ?? 0.72) * 100)}%</Text>
           </Box>
-          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
-            <Heading size="sm" mb={2}>Ação do gestor</Heading>
-            <Textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Observação ou despacho" mb={3} />
-            <Button colorScheme="brand" onClick={handleAdvance} isLoading={loading}>
-              Encaminhar
-            </Button>
-          </Box>
+          {user?.role === "gestor" && (
+            <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
+              <Heading size="sm" mb={2}>Ação do gestor</Heading>
+              <Textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Observação ou despacho" mb={3} />
+              <Button colorScheme="brand" onClick={handleAdvance} isLoading={loading}>
+                Encaminhar
+              </Button>
+            </Box>
+          )}
         </Stack>
       </Grid>
     </AppLayout>
+    </RoleProtectedRoute>
   );
 }
