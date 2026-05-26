@@ -3,8 +3,10 @@ import { AuthPayload, RegisterPayload } from "@/types/auth";
 import { User } from "@/types/user";
 
 export const authService = {
-  login: (payload: AuthPayload) => api.login(payload),
-  register: (payload: RegisterPayload): Promise<{ user: User; token: string }> => api.register(payload),
-  me: () => api.me(),
-  logout: () => api.logout(),
+  login: (payload: AuthPayload): Promise<{ user: User; token: string }> =>
+    api.login(payload.email, payload.senha),
+  register: (payload: RegisterPayload): Promise<{ user: User; token: string }> =>
+    api.register(payload.nome, payload.email, payload.senha, payload.telefone),
+  me: (): Promise<User> => api.me(), // Chama o método `me` do `api`
+  logout: (): Promise<void> => api.logout(), // Chama o método `logout` do `api`
 };

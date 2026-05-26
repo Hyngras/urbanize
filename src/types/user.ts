@@ -6,4 +6,5 @@ export interface User {
   email: string;
   telefone?: string;
   role: DemandRole;
+  senha: string;
 }

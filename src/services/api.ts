@@ -104,26 +104,32 @@ export const api = {
       tempoMedioAtendimentoDias: 4.2,
     };
   },
-  async login(email: string): Promise<{ user: User; token: string }> {
+  async login(email: string, senha: string): Promise<{ user: User; token: string }> {
     await mockDelay();
-    let user = mockUsers.find((u) => u.email === email);
+    const user = mockUsers.find((u) => u.email === email && u.senha === senha); // Verifica email e senha
     if (!user) {
-      const role = detectRoleFromEmail(email);
-      user = {
-        id: newId(),
-        nome: role === "gestor" ? "Gestor Demo" : "Cidadão Demo",
-        email,
-        role,
-      };
-      mockUsers.push(user);
+      throw new Error("Email ou senha inválidos"); // Retorna erro se não encontrar o usuário
     }
     return { user, token: newId() };
   },
-  async register(nome: string, email: string, telefone?: string) {
+  async register(nome: string, email: string, senha: string, telefone?: string) {
     await mockDelay();
     const role = detectRoleFromEmail(email);
-    const user: User = { id: newId(), nome, email, telefone, role };
-    mockUsers.push(user);
-    return { user, token: newId() };
+    const user: User = { id: newId(), nome, email, senha, telefone, role }; // Inclua a senha no usuário
+    mockUsers.push(user); // Adicione o usuário ao mock
+    return { user, token: newId() }; // Retorne o usuário e um novo token
+  },
+  async me(): Promise<User> {
+    await mockDelay();
+    const user = mockUsers[0]; // Retorna o primeiro usuário mockado (ou ajuste conforme necessário)
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+    return user;
+  },
+  
+  async logout(): Promise<void> {
+    await mockDelay();
+    console.log("Usuário deslogado com sucesso");
   },
 };
