@@ -87,6 +87,6 @@ export const mockDemands: Demand[] = [
 ];
 
 export const mockUsers: User[] = [
-  { id: newId(), nome: "Gestor Demo", email: "gestor@urbanize.com", role: "gestor" },
-  { id: newId(), nome: "Cidadão Demo", email: "cidadao@urbanize.com", role: "cidadao" },
+  { id: newId(), nome: "Gestor Demo", email: "gestor@urbanize.com", senha: "demo", role: "gestor" },
+  { id: newId(), nome: "Cidadão Demo", email: "cidadao@urbanize.com", senha: "demo", role: "cidadao" },
 ];
