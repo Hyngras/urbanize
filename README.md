@@ -300,6 +300,8 @@ Consulte [docs/requisitos-urbanize.md](docs/requisitos-urbanize.md) para checkli
 
 **Vídeo demonstrativo:** https://drive.google.com/file/d/18r728n8keNXeKZlQN2OaagseRG1cEEZP/view?usp=sharing
 
+**Relatório Evolutivo de Gerenciamento de Projetos:** https://docs.google.com/document/d/1VPHJShULJMxiHVufiEe1QSkML5U3jmdb/edit?usp=sharing&ouid=114422210981340383118&rtpof=true&sd=true
+
 ## Próximos passos
 
 - [ ] Integração com backend real
