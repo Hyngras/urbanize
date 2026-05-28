@@ -14,11 +14,13 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       loading: false,
       login: async (email: string, senha: string) => {
+        if (get().loading) return;
+
         set({ loading: true });
         try {
           const { user, token } = await authService.login({ email, senha });
@@ -29,6 +31,8 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       register: async (nome, email, senha, telefone, role = "cidadao") => {
+        if (get().loading) return;
+
         set({ loading: true });
         try {
           const { user, token } = await authService.register({ nome, email, telefone, senha, role });
