@@ -2,7 +2,8 @@
 
 > Plataforma de gestão de demandas urbanas com backend real, banco persistente e diferenciação de perfis (Cidadão e Gestor)
 
-![Home Page](img/11-home-completa.png)
+<img width="1917" height="985" alt="image" src="https://github.com/user-attachments/assets/39b854b8-b572-40cb-8177-8a01f822b2ab" />
+
 
 **Stack:** Next.js 16 • TypeScript • Chakra UI • Zustand • Node.js • Express • Prisma ORM • JWT • Cookies • Redis opcional • Cron Jobs
 
@@ -96,7 +97,7 @@ O perfil do usuário é definido no cadastro e validado no backend:
 
 A autenticação usa senha com hash, JWT, cookie HTTP-only e proteção por perfil.
 
-![Tela de Login](img/01-login.png)
+<img width="1914" height="965" alt="image" src="https://github.com/user-attachments/assets/edbef56e-8f49-4c60-a1c5-c9c2a5d731ed" />
 
 ### Perfil Cidadão
 
@@ -136,9 +137,9 @@ Consulte a [documentação de jornadas](docs/jornada-usuario.md) para fluxos det
 - `/demandas` - Todas as demandas
 - `/demandas/:id` - Gerenciar demanda
 
-![Painel do Gestor](img/02-painel-gestor.png)
+<img width="1917" height="994" alt="image" src="https://github.com/user-attachments/assets/01d549a9-9f3f-434f-aa5f-494a8b9870b5" />
 
-![Lista de Demandas](img/04-lista-demandas.png)
+<img width="1912" height="993" alt="image" src="https://github.com/user-attachments/assets/c90cbfa2-dc45-4fb4-a970-71405e20ba65" />
 
 <details>
 <summary>Ver jornada completa do gestor</summary>
@@ -162,10 +163,6 @@ Regra de negócio executada no backend:
 - Sugestão de órgão responsável
 - Score simples de confiança
 - Histórico inicial da demanda gravado no banco
-
-![Home - Como Funciona](img/06-home-como-funciona.png)
-
-![Home - Métricas](img/08-home-metricas.png)
 
 ## Estrutura do projeto
 
