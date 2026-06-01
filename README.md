@@ -12,6 +12,18 @@
 # Instalar dependências
 npm install
 
+# Configurar variáveis de ambiente
+# Crie um arquivo .env no diretório backend a partir do .env.example
+
+# Linux/macOS
+cp backend/.env.example backend/.env
+
+# Windows (PowerShell)
+Copy-Item backend/.env.example backend/.env
+
+# Gerar o Prisma Client
+npx prisma generate
+
 # Preparar banco local
 npm run db:migrate
 npm run db:seed
@@ -23,7 +35,7 @@ npm run dev:backend
 npm run dev:frontend
 
 # Acessar
- http://127.0.0.1:4100
+http://127.0.0.1:4100
 ```
 
 **Credenciais de teste:**
@@ -46,12 +58,27 @@ npm run dev:frontend
 <details>
 <summary>Solução de problemas</summary>
 
+**Erro ao executar o seed:**
+
+```bash
+Cannot find module '../src/generated/prisma/client'
+```
+
+Gere novamente o Prisma Client:
+
+```bash
+npx prisma generate
+npm run db:seed
+```
+
 **Porta ocupada:**
+
 ```bash
 lsof -ti tcp:4100 | xargs kill
 ```
 
 **Mudar porta:**
+
 ```bash
 npm run dev -- --hostname 127.0.0.1 --port 4101
 ```
