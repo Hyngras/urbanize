@@ -331,13 +331,7 @@ Consulte [docs/requisitos-urbanize.md](docs/requisitos-urbanize.md) para checkli
 
 **Deploy:** https://urbanize-eta.vercel.app/
 
-**Vídeo demonstrativo:** https://drive.google.com/file/d/18r728n8keNXeKZlQN2OaagseRG1cEEZP/view?usp=sharing
+**Vídeo demonstrativo:** https://drive.google.com/file/d/15X7kPG8PKER3oMKsnmrWBBHeLHlu1IAH/view?usp=sharing
 
-**Relatório Evolutivo de Gerenciamento de Projetos:** (docs/Urbanize - Relatório Evolutivo de Gerenciamento de Projetos.md) 
+Relatório Evolutivo de Gerenciamento de Projetos: [Abrir relatório](<docs/Urbanize - Relatório Evolutivo de Gerenciamento de Projetos.md>)
 
-## Próximos passos
-
-- [x] Integração com backend real
-- [x] Triagem inicial por imagem com TensorFlow.js/MobileNet e fallback Google Vision
-- [ ] Sistema de notificações
-- [x] Upload de fotos em demandas
