@@ -3,6 +3,8 @@ import { cache } from "../config/redis";
 import { demandRepository, DemandFilters } from "../repositories/demandRepository";
 import { AppError } from "../utils/appError";
 import { toDemandResponse } from "../utils/demandMapper";
+import { organService } from "./organService";
+import { prisma } from "../config/prisma";
 
 const categoryToDepartment: Record<DemandCategory, string> = {
   vias_publicas: "Secretaria de Obras",
@@ -25,9 +27,14 @@ const ensureAllowed = (demand: Awaited<ReturnType<typeof demandRepository.findBy
 };
 
 export const demandService = {
-  async list(filters: Omit<DemandFilters, "userId">, user: { id: string; role: UserRole }) {
-    const scope = user.role === "gestor" ? undefined : user.id;
-    const demands = await demandRepository.list({ ...filters, userId: scope });
+  async list(filters: Omit<DemandFilters, "userId">, user: { id: string; role: UserRole; organId?: string | null }) {
+    if (user.role === "gestor") {
+      // Gestor vê apenas demandas do seu órgão (se tiver vínculo)
+      const scope = user.organId ? { organId: user.organId } : {};
+      const demands = await demandRepository.list({ ...filters, ...scope });
+      return demands.map(toDemandResponse);
+    }
+    const demands = await demandRepository.list({ ...filters, userId: user.id });
     return demands.map(toDemandResponse);
   },
   async getById(id: string, user: { id: string; role: UserRole }) {
@@ -56,8 +63,10 @@ export const demandService = {
       protocolo = generateProtocol();
     }
 
+    // Busca órgão responsável pelo banco, com fallback para mapa estático
+    const organ = await organService.findByCategoria(input.categoria);
+    const sugestaoEncaminhamento = organ?.nome ?? categoryToDepartment[input.categoria];
     const scoreTriagem = input.categoria === "outros" ? 0.55 : 0.82;
-    const sugestaoEncaminhamento = categoryToDepartment[input.categoria];
 
     const demand = await demandRepository.create({
       protocolo,
@@ -80,10 +89,15 @@ export const demandService = {
       scoreTriagem,
       sugestaoEncaminhamento,
       user: { connect: { id: user.id } },
+      ...(organ ? { organ: { connect: { id: organ.id } } } : {}),
       historico: {
         create: [
           { status: "registrada", descricao: "Registrada pelo cidadão", autor: user.nome },
-          { status: "em_analise", descricao: "Triagem automática realizada", autor: "Sistema" },
+          {
+            status: "em_analise",
+            descricao: `Triagem automática: ${sugestaoEncaminhamento}`,
+            autor: "Sistema",
+          },
         ],
       },
     });

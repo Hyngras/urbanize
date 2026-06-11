@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import path from "path";
 import { env } from "./config/env";
 import { errorMiddleware, notFoundMiddleware } from "./middlewares/errorMiddleware";
 import { routes } from "./routes";
@@ -16,6 +17,9 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+
+// Servir imagens enviadas pelos usuários
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.use("/api", routes);
 

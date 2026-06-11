@@ -4,26 +4,26 @@
 
 ## Visão Geral
 
-O Urbanize implementa um sistema de diferenciação de perfis similar a aplicativos bancários, onde cada tipo de usuário tem sua própria navegação e permissões. São **2 perfis principais**: **Cidadão** e **Gestor Público**.
+O Urbanize implementa diferenciação de perfis, onde cada tipo de usuário tem permissões próprias. São **2 perfis principais**: **Cidadão** e **Gestor Público**.
 
-**Detecção automática de perfil por email:**
-- `@cidadaourbanize.com` ou `cidadao@urbanize.com` → **Cidadão**
-- `@gestorurbanize.com` ou `gestor@urbanize.com` → **Gestor**
-- Qualquer outro email → **Cidadão** (padrão)
+**Definição de perfil:**
+- No cadastro, o perfil é escolhido no formulário.
+- Nos usuários seed, `cidadao@urbanize.com` é cidadão e `gestor@urbanize.com` é gestor.
+- O backend persiste e valida o perfil em rotas protegidas.
 
 ## Perfil 1: Cidadão (Usuário Comum)
 
 ### Identificação
-- **Email:** `@cidadaourbanize.com` ou `cidadao@urbanize.com` (demo)
+- **Email demo:** `cidadao@urbanize.com`
 - **Redirecionamento após login:** `/dashboard`
 
 ### Navegação Disponível
 
 | Rota | Página | Descrição |
 |------|--------|-----------|
-| `/dashboard` | Meu Dashboard | Visão geral das demandas e métricas pessoais |
-| `/demandas` | Minhas Demandas | Lista apenas as demandas criadas por você |
-| `/demandas/nova` | Nova Demanda | Criar nova solicitação para a prefeitura |
+| `/dashboard` | Dashboard do cidadão | Visão geral das demandas e métricas pessoais |
+| `/demandas` | Demandas do cidadão | Lista apenas as demandas criadas por você |
+| `/demandas/nova` | Criar demanda | Criar nova solicitação para a prefeitura |
 | `/demandas/:id` | Detalhes | Ver timeline e status da demanda |
 
 ### Permissões
@@ -47,8 +47,7 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 1. **Primeiro Acesso**
    - Acessa [Home](/) e entende a proposta
    - Clica em "Criar conta" → [Cadastro](/cadastro)
-   - Preenche: nome, email, telefone
-   - Sistema detecta perfil pelo email
+   - Preenche nome, email, senha e perfil
    - Redireciona automaticamente para `/dashboard`
 
 2. **Login Recorrente**
@@ -57,21 +56,23 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
    - Redireciona para `/dashboard`
 
 3. **Criar Demanda**
-   - No dashboard, clica "Nova demanda"
+   - Na home, clica "Registrar demanda" ou acessa `/demandas/nova`
    - Vai para `/demandas/nova`
-   - Preenche formulário:
+   - Anexa uma foto do problema
+   - A IA classifica a imagem e sugere órgão responsável
+   - O sistema preenche automaticamente:
      - Título da demanda
      - Descrição detalhada
-     - Categoria (iluminação, vias, lixo, etc)
+   - Completa o formulário:
      - Prioridade (baixa, média, alta)
      - Localização (endereço, bairro, cidade)
-     - Anexo de foto (opcional)
+     - Ponto de referência, se necessário
    - Clica em "Enviar demanda"
    - Recebe toast de sucesso
    - Redireciona para `/demandas/:id` (detalhes)
 
 4. **Acompanhar Demanda**
-   - Acessa "Minhas Demandas" → `/demandas`
+   - Acessa `/demandas`
    - Vê lista de cards com suas demandas
    - Pode filtrar por: status, categoria, busca
    - Clica em uma demanda → `/demandas/:id`
@@ -93,9 +94,8 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 ### Indicadores Visuais
 
 **Navbar:**
-- Nome e perfil exibidos: "João Silva (Cidadão)"
-- Menu: Meu Dashboard | Minhas Demandas | Nova Demanda
-- Botão "Sair"
+- Exibe apenas a marca Urbanize quando o usuário está autenticado.
+- Para visitantes, exibe botões de entrada/cadastro.
 
 **Dashboard:**
 - Foco em "minhas demandas"
@@ -106,7 +106,7 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 ## Perfil 2: Gestor Público
 
 ### Identificação
-- **Email:** `@gestorurbanize.com` ou `gestor@urbanize.com` (demo)
+- **Email demo:** `gestor@urbanize.com`
 - **Redirecionamento após login:** `/gestor`
 
 ### Navegação Disponível
@@ -114,17 +114,17 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 | Rota | Página | Descrição |
 |------|--------|-----------|
 | `/gestor` | Painel do Gestor | Métricas gerais, fila de triagem inteligente |
-| `/demandas` | Todas as Demandas | Lista TODAS as demandas da plataforma |
+| `/demandas` | Demandas visíveis ao gestor | Lista demandas do órgão vinculado ou a fila geral quando não houver vínculo |
 | `/demandas/:id` | Gerenciar | Ver detalhes e alterar status |
 
 ### Permissões
 
 ✅ **Pode fazer:**
-- Visualizar todas as demandas da cidade
+- Visualizar demandas do órgão vinculado ou a fila geral quando não houver vínculo
 - Alterar status de qualquer demanda
 - Adicionar observações nas demandas
 - Encaminhar demandas para órgãos competentes
-- Revisar triagem automática da IA (mock)
+- Revisar triagem inteligente gerada a partir da imagem
 - Visualizar métricas gerais da cidade
 - Filtrar demandas por múltiplos critérios
 
@@ -150,13 +150,14 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
      - Em atendimento
    - Acessa seção "Fila recente"
    - Pode filtrar por status
-   - Acessa seção "Triagem Inteligente" (mock de IA)
+   - Acessa seção "Triagem Inteligente"
 
 3. **Triagem Automática**
    - Sistema mostra demandas em análise
    - Para cada demanda, vê:
-     - Score de priorização (0-1)
-     - Sugestão de órgão responsável (mock)
+     - Foto enviada pelo cidadão
+     - Texto descritivo da demanda
+     - Sugestão de órgão responsável
      - Confiança da IA
    - Pode:
      - Aceitar sugestão → Encaminha automaticamente
@@ -164,8 +165,8 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
      - Revisar detalhes → Vai para `/demandas/:id`
 
 4. **Gerenciar Demandas**
-   - Acessa "Todas as Demandas" → `/demandas`
-   - Vê TODAS as demandas da cidade (não só suas)
+   - Acessa `/demandas`
+   - Vê demandas disponíveis no seu escopo de gestor
    - Aplica filtros:
      - Status (registrada, em análise, encaminhada, etc)
      - Categoria
@@ -174,10 +175,10 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
    - Clica em uma demanda → `/demandas/:id`
    - Visualiza informações completas
    - **Ações exclusivas do gestor:**
-     - Alterar status via dropdown
+     - Alterar status por botões de ação
      - Adicionar observação
      - Ver histórico completo
-     - Salvar alterações
+     - Confirmar alteração de status
    - Recebe toast de sucesso
    - Demanda atualizada no histórico
 
@@ -192,9 +193,7 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 ### Indicadores Visuais
 
 **Navbar:**
-- Nome e perfil: "Maria Gestora (Gestor)"
-- Menu: Painel do Gestor | Todas as Demandas
-- Botão "Sair"
+- Exibe apenas a marca Urbanize quando o usuário está autenticado.
 
 **Painel do Gestor:**
 - Badge verde "Modo gestor" no topo
@@ -204,9 +203,9 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 - Fila com filtros avançados
 
 **Detalhes da Demanda:**
-- Dropdown de status (habilitado)
+- Botões de alteração de status
 - Campo de observação do gestor
-- Botão "Salvar alterações"
+- Histórico e dados da demanda
 
 ## Matriz de Proteção de Rotas
 
@@ -229,12 +228,10 @@ O Urbanize implementa um sistema de diferenciação de perfis similar a aplicati
 
 **Cidadão tenta acessar rota de gestor:**
 - `/gestor` → Redireciona para `/dashboard`
-- Toast informativo: "Área restrita a gestores"
 
 **Gestor tenta acessar rota exclusiva de cidadão:**
 - `/dashboard` → Redireciona para `/gestor`
 - `/demandas/nova` → Redireciona para `/gestor`
-- Toast informativo: "Gestores gerenciam demandas, não criam"
 
 ## Estados de Feedback
 
@@ -268,24 +265,18 @@ Todos os perfis têm estados visuais completos:
 
 ### Arquivos Principais
 
-**1. Detecção de Perfil**
+**1. Persistência de Perfil**
 ```typescript
-// src/utils/roleDetection.ts
-export function detectRoleFromEmail(email: string): DemandRole {
-  const lowercaseEmail = email.toLowerCase().trim();
-  
-  if (lowercaseEmail.includes("@gestorurbanize.com") || 
-      lowercaseEmail === "gestor@urbanize.com") {
-    return "gestor";
-  }
-  
-  return "cidadao"; // Padrão
-}
+// frontend/src/store/authStore.ts
+register: async (nome, email, senha, telefone, role = "cidadao") => {
+  const { user, token } = await authService.register({ nome, email, telefone, senha, role });
+  set({ user, token, loading: false });
+};
 ```
 
 **2. Proteção de Rotas**
 ```typescript
-// src/components/auth/RoleProtectedRoute.tsx
+// frontend/src/components/auth/RoleProtectedRoute.tsx
 export function RoleProtectedRoute({ 
   children, 
   allowedRoles 
@@ -314,27 +305,22 @@ export function RoleProtectedRoute({
 }
 ```
 
-**3. Navegação Condicional**
+**3. Navegação Simplificada**
 ```typescript
-// src/components/layout/AppNavbar.tsx
-const linksByCitizen = [
-  { href: "/dashboard", label: "Meu Dashboard" },
-  { href: "/demandas", label: "Minhas Demandas" },
-  { href: "/demandas/nova", label: "Nova Demanda" },
-];
-
-const linksByManager = [
-  { href: "/gestor", label: "Painel do Gestor" },
-  { href: "/demandas", label: "Todas as Demandas" },
-];
-
-// Seleciona links baseado no perfil
-const links = user?.role === "gestor" ? linksByManager : linksByCitizen;
+// frontend/src/components/layout/AppNavbar.tsx
+// Usuários autenticados veem apenas a marca Urbanize.
+// Visitantes veem botões para login e cadastro.
+{!user && (
+  <>
+    <Button as={Link} href="/login">Entrar</Button>
+    <Button as={Link} href="/cadastro">Criar conta</Button>
+  </>
+)}
 ```
 
 **4. Uso nas Páginas**
 ```typescript
-// src/app/dashboard/page.tsx (Cidadão)
+// frontend/src/app/dashboard/page.tsx (Cidadão)
 export default function DashboardPage() {
   return (
     <RoleProtectedRoute allowedRoles={["cidadao"]}>
@@ -345,7 +331,7 @@ export default function DashboardPage() {
   );
 }
 
-// src/app/gestor/page.tsx (Gestor)
+// frontend/src/app/gestor/page.tsx (Gestor)
 export default function GestorPage() {
   return (
     <RoleProtectedRoute allowedRoles={["gestor"]}>
@@ -366,36 +352,36 @@ export default function GestorPage() {
 1. Acesse: http://127.0.0.1:4100/cadastro
 2. Preencha:
    - Nome: João Silva
-   - Email: joao@cidadaourbanize.com
-   - Telefone: (81) 99999-9999
+   - Email: joao@urbanize.com
+   - Senha
+   - Perfil: Cidadão
 3. Clique "Criar conta"
 4. ✅ Deve redirecionar para /dashboard
 
 # Passo 2: Criar Demanda
-5. Clique no botão "Nova demanda"
+5. Acesse a home e clique em "Registrar demanda" ou abra /demandas/nova
 6. ✅ Vai para /demandas/nova
-7. Preencha:
-   - Título: Poste apagado na minha rua
-   - Descrição: Poste número 123 está sem luz há 3 dias
-   - Categoria: Iluminação pública
+7. Anexe uma foto do problema
+8. ✅ Título e descrição são preenchidos automaticamente
+9. Complete:
    - Prioridade: Média
    - Endereço: Rua das Flores, 100
    - Bairro: Centro
    - Cidade: Recife
-8. Clique "Enviar demanda"
-9. ✅ Toast de sucesso aparece
-10. ✅ Redireciona para /demandas/:id
+10. Marque o aceite de compartilhamento
+11. Clique "Enviar demanda"
+12. ✅ Toast de sucesso aparece
+13. ✅ Redireciona para /demandas/:id
 
 # Passo 3: Acompanhar
-11. Veja timeline da demanda
-12. Volte para "Minhas Demandas"
-13. ✅ Sua demanda aparece na lista
-14. ✅ Status: "Registrada"
+14. Veja descrição, localização e timeline da demanda
+15. Acesse /demandas
+16. ✅ Sua demanda aparece na lista
+17. ✅ Status: "Em análise"
 
 # Passo 4: Proteção de Rotas
-15. Tente acessar: http://127.0.0.1:4100/gestor
-16. ✅ Redireciona para /dashboard
-17. ✅ Toast: "Área restrita a gestores"
+18. Tente acessar: http://127.0.0.1:4100/gestor
+19. ✅ Redireciona para /dashboard
 ```
 
 ### Teste 2: Fluxo Completo do Gestor
@@ -415,19 +401,18 @@ export default function GestorPage() {
 9. ✅ Fila de demandas com filtros
 
 # Passo 3: Gerenciar Demanda
-10. Clique em "Todas as Demandas"
-11. ✅ Vê TODAS as demandas (não só suas)
+10. Acesse /demandas
+11. ✅ Vê demandas disponíveis no escopo do gestor
 12. Filtre por: Status = "Registrada"
 13. Clique na demanda do João Silva
 14. ✅ Vai para /demandas/:id
 
 # Passo 4: Atualizar Status
-15. Veja dropdown de status (habilitado)
-16. Selecione: "Em análise"
+15. Veja botões de ação do gestor
+16. Clique em "Encaminhar" ou "Iniciar atendimento"
 17. Adicione observação: "Equipe verificará o local"
-18. Clique "Salvar alterações"
-19. ✅ Toast de sucesso
-20. ✅ Timeline atualizada com novo item
+18. ✅ Toast de sucesso
+19. ✅ Timeline atualizada com novo item
 
 # Passo 5: Proteção de Rotas
 21. Tente acessar: http://127.0.0.1:4100/dashboard
@@ -454,9 +439,10 @@ export default function GestorPage() {
 
 ### Criação de Demandas
 - ✅ Apenas cidadãos podem criar
-- ✅ Campos obrigatórios: título, descrição, categoria, localização
+- ✅ Campos obrigatórios: título, descrição e localização
+- ✅ Categoria é preenchida automaticamente pela triagem de imagem ou mantida como `outros` quando não houver classificação
 - ✅ Protocolo gerado automaticamente (URB-XXXXX)
-- ✅ Status inicial sempre "registrada"
+- ✅ Status inicial persistido como "em análise", com histórico de registro e triagem
 - ✅ Origem sempre "cidadao"
 - ✅ Data de criação automática
 
@@ -470,12 +456,11 @@ export default function GestorPage() {
 
 ### Visualização de Demandas
 - ✅ Cidadãos veem apenas as próprias
-- ✅ Gestores veem todas da cidade
+- ✅ Gestores veem demandas do órgão vinculado ou a fila geral quando não houver vínculo
 - ✅ Filtros aplicam para ambos os perfis
 - ✅ Busca funciona em títulos e descrições
 
-### Detecção de Perfil
-- ✅ Automática pelo domínio do email
-- ✅ Definida no momento do cadastro/login
+### Perfil de usuário
+- ✅ Definido no cadastro ou no seed inicial
 - ✅ Não pode ser alterada pelo usuário
 - ✅ Persiste no localStorage (via Zustand persist)

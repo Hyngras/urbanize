@@ -6,12 +6,60 @@ import { PrismaClient } from "../src/generated/prisma/client";
 const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL ?? "file:./dev.db" });
 const prisma = new PrismaClient({ adapter });
 
-const users = [
-  { nome: "Cidadão Demo", email: "cidadao@urbanize.com", role: "cidadao" as const },
-  { nome: "Gestor Demo", email: "gestor@urbanize.com", role: "gestor" as const },
+const organs = [
+  {
+    sigla: "EMLURB",
+    nome: "Empresa de Manutenção e Limpeza Urbana",
+    email: "atendimento@emlurb.recife.pe.gov.br",
+    telefone: "0800 081 0155",
+    whatsapp: null as null,
+    site: "https://www2.recife.pe.gov.br/servico/emlurb",
+    categoriasJson: JSON.stringify(["coleta_de_lixo", "zeladoria"]),
+  },
+  {
+    sigla: "SEINFRA",
+    nome: "Secretaria de Infraestrutura",
+    email: "seinfra@recife.pe.gov.br",
+    telefone: "0800 081 0166",
+    whatsapp: null as null,
+    site: "https://www2.recife.pe.gov.br",
+    categoriasJson: JSON.stringify(["vias_publicas"]),
+  },
+  {
+    sigla: "NEOENERGIA",
+    nome: "Neoenergia Pernambuco",
+    email: "atendimento@neoenergia.com",
+    telefone: "0800 081 0120",
+    whatsapp: "558130306000",
+    site: "https://www.neoenergia.com/web/pernambuco",
+    categoriasJson: JSON.stringify(["iluminacao_publica"]),
+  },
+  {
+    sigla: "COMPESA",
+    nome: "Companhia Pernambucana de Saneamento",
+    email: "sac@compesa.com.br",
+    telefone: "0800 081 0195",
+    whatsapp: null as null,
+    site: "https://www.compesa.com.br",
+    categoriasJson: JSON.stringify(["saneamento"]),
+  },
+  {
+    sigla: "SECOM",
+    nome: "Secretaria de Controle Urbano",
+    email: "secom@recife.pe.gov.br",
+    telefone: "0800 081 0177",
+    whatsapp: null as null,
+    site: "https://www2.recife.pe.gov.br",
+    categoriasJson: JSON.stringify(["fiscalizacao", "outros"]),
+  },
 ];
 
-const demands = [
+const usersData = [
+  { nome: "Cidadão Demo", email: "cidadao@urbanize.com", role: "cidadao" as const, organSigla: null as string | null },
+  { nome: "Gestor Emlurb", email: "gestor@urbanize.com", role: "gestor" as const, organSigla: "EMLURB" as string | null },
+];
+
+const demandsData = [
   {
     protocolo: "URB-10001",
     titulo: "Poste apagado na Av. Boa Viagem",
@@ -23,7 +71,8 @@ const demands = [
     bairro: "Boa Viagem",
     cidade: "Recife",
     scoreTriagem: 0.72,
-    sugestaoEncaminhamento: "Iluminação Urbana",
+    sugestaoEncaminhamento: "Neoenergia Pernambuco",
+    organSigla: "NEOENERGIA",
   },
   {
     protocolo: "URB-10002",
@@ -36,7 +85,8 @@ const demands = [
     bairro: "Derby",
     cidade: "Recife",
     scoreTriagem: 0.86,
-    sugestaoEncaminhamento: "Secretaria de Obras",
+    sugestaoEncaminhamento: "Secretaria de Infraestrutura",
+    organSigla: "SEINFRA",
   },
   {
     protocolo: "URB-10003",
@@ -49,36 +99,55 @@ const demands = [
     bairro: "Santo Amaro",
     cidade: "Recife",
     scoreTriagem: 0.78,
-    sugestaoEncaminhamento: "Limpeza Urbana",
+    sugestaoEncaminhamento: "Empresa de Manutenção e Limpeza Urbana",
+    organSigla: "EMLURB",
   },
 ];
 
 async function main() {
   const senhaHash = await bcrypt.hash("demo", 10);
-  const [citizen] = await Promise.all(
-    users.map((user) =>
-      prisma.user.upsert({
-        where: { email: user.email },
-        update: { nome: user.nome, role: user.role, senhaHash },
-        create: { ...user, senhaHash },
-      })
-    )
-  );
 
-  for (const demand of demands) {
+  const organMap: Record<string, string> = {};
+  for (const organ of organs) {
+    const created = await prisma.organ.upsert({
+      where: { sigla: organ.sigla },
+      update: organ,
+      create: organ,
+    });
+    organMap[organ.sigla] = created.id;
+  }
+
+  const userMap: Record<string, string> = {};
+  for (const u of usersData) {
+    const organConnect = u.organSigla ? { organ: { connect: { id: organMap[u.organSigla] } } } : {};
+    const created = await prisma.user.upsert({
+      where: { email: u.email },
+      update: { nome: u.nome, role: u.role, senhaHash, ...organConnect },
+      create: { nome: u.nome, email: u.email, role: u.role, senhaHash, ...organConnect },
+    });
+    userMap[u.email] = created.id;
+  }
+
+  const citizenId = userMap["cidadao@urbanize.com"];
+  const citizen = await prisma.user.findUnique({ where: { id: citizenId } });
+
+  for (const demand of demandsData) {
+    const { organSigla, ...demandData } = demand;
+    const organConnect = { organ: { connect: { id: organMap[organSigla] } } };
     await prisma.demand.upsert({
       where: { protocolo: demand.protocolo },
-      update: demand,
+      update: { ...demandData, ...organConnect },
       create: {
-        ...demand,
-        nomeSolicitante: citizen.nome,
-        emailSolicitante: citizen.email,
+        ...demandData,
+        nomeSolicitante: citizen!.nome,
+        emailSolicitante: citizen!.email,
         origem: "cidadao",
-        user: { connect: { id: citizen.id } },
+        ...organConnect,
+        user: { connect: { id: citizenId } },
         historico: {
           create: [
-            { status: "registrada", descricao: "Registrada pelo cidadão", autor: citizen.nome },
-            { status: demand.status, descricao: "Status inicial da base de demonstração", autor: "Sistema" },
+            { status: "registrada", descricao: "Registrada pelo cidadão", autor: citizen!.nome },
+            { status: demandData.status, descricao: "Status inicial da base de demonstração", autor: "Sistema" },
           ],
         },
       },

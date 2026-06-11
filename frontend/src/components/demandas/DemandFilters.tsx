@@ -1,6 +1,7 @@
 import { Box, Button, Flex, Icon, Input, InputGroup, InputLeftElement, Select, Stack } from "@chakra-ui/react";
 import { useDemandStore } from "@/store/demandStore";
 import { FiSearch, FiFilter } from "react-icons/fi";
+import { categoryLabel } from "@/utils/categoryLabel";
 
 export function DemandFilters() {
   const { filters, setFilters, fetchDemands } = useDemandStore();
@@ -63,13 +64,13 @@ export function DemandFilters() {
           flex={1}
           {...inputStyle}
         >
-          <option value="vias_publicas">Vias públicas</option>
-          <option value="iluminacao_publica">Iluminação pública</option>
-          <option value="coleta_de_lixo">Coleta de lixo</option>
-          <option value="saneamento">Saneamento</option>
-          <option value="fiscalizacao">Fiscalização</option>
-          <option value="zeladoria">Zeladoria</option>
-          <option value="outros">Outros</option>
+          <option value="vias_publicas">{categoryLabel.vias_publicas}</option>
+          <option value="iluminacao_publica">{categoryLabel.iluminacao_publica}</option>
+          <option value="coleta_de_lixo">{categoryLabel.coleta_de_lixo}</option>
+          <option value="saneamento">{categoryLabel.saneamento}</option>
+          <option value="fiscalizacao">{categoryLabel.fiscalizacao}</option>
+          <option value="zeladoria">{categoryLabel.zeladoria}</option>
+          <option value="outros">{categoryLabel.outros}</option>
         </Select>
         <Select
           placeholder="Prioridade"

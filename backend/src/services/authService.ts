@@ -11,6 +11,7 @@ const publicUser = (user: User) => ({
   email: user.email,
   telefone: user.telefone ?? undefined,
   role: user.role,
+  organId: user.organId ?? undefined,
 });
 
 const signToken = (user: User) =>

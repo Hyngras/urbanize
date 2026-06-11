@@ -153,7 +153,7 @@ function Hero() {
             <Stack direction={{ base: "column", sm: "row" }} spacing={3} pt={2}>
               <Button
                 as={Link}
-                href="/demandas/nova"
+                href="/login?next=/demandas/nova"
                 size="lg"
                 bg="white"
                 color="brand.700"
@@ -512,7 +512,7 @@ function CTA() {
           </Text>
           <Button
             as={Link}
-            href="/demandas/nova"
+            href="/login?next=/demandas/nova"
             size="lg"
             bg="white"
             color="brand.600"

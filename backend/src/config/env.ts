@@ -14,6 +14,7 @@ export const env = {
   cookieName: process.env.AUTH_COOKIE_NAME ?? "urbanize_session",
   redisUrl: process.env.REDIS_URL,
   metricsCron: process.env.METRICS_CRON ?? "*/15 * * * *",
+  googleCredentials: process.env.GOOGLE_VISION_CREDENTIALS ?? null,
 };
 
 export const isProduction = env.nodeEnv === "production";

@@ -8,6 +8,7 @@ export interface DemandFilters {
   bairro?: string;
   busca?: string;
   userId?: string;
+  organId?: string;
 }
 
 const includeHistory = {
@@ -18,6 +19,7 @@ export const demandRepository = {
   list(filters: DemandFilters) {
     const where: Prisma.DemandWhereInput = {
       ...(filters.userId ? { userId: filters.userId } : {}),
+      ...(filters.organId ? { organId: filters.organId } : {}),
       ...(filters.status ? { status: filters.status } : {}),
       ...(filters.categoria ? { categoria: filters.categoria } : {}),
       ...(filters.prioridade ? { prioridade: filters.prioridade } : {}),

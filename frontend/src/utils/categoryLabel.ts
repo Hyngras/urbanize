@@ -1,9 +1,9 @@
 import { DemandCategory } from "@/types/demand";
 
 export const categoryLabel: Record<DemandCategory, string> = {
-  vias_publicas: "Vias públicas",
-  iluminacao_publica: "Iluminação pública",
-  coleta_de_lixo: "Coleta de lixo",
+  vias_publicas: "Buraco na rua",
+  iluminacao_publica: "Poste ou fiação caída",
+  coleta_de_lixo: "Lixo acumulado na rua",
   saneamento: "Saneamento",
   fiscalizacao: "Fiscalização",
   zeladoria: "Zeladoria",

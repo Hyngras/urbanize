@@ -30,7 +30,7 @@ const createDemandSchema = z.object({
     longitude: z.number().optional(),
   }),
   origem: z.enum(DemandSource).optional(),
-  imagemUrl: z.string().url().optional(),
+  imagemUrl: z.string().min(1).optional(),
 });
 
 const updateStatusSchema = z.object({

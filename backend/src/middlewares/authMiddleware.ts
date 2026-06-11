@@ -29,6 +29,7 @@ export const requireAuth = async (req: Request, _res: Response, next: NextFuncti
       email: user.email,
       role: user.role,
       nome: user.nome,
+      organId: user.organId,
     };
 
     next();

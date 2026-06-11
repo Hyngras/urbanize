@@ -3,19 +3,27 @@
 import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDemandStore } from "@/store/demandStore";
+import { useAuthStore } from "@/store/authStore";
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   Checkbox,
   Circle,
+  Divider,
   Flex,
   FormControl,
   FormLabel,
   Grid,
   GridItem,
   Heading,
+  HStack,
   Icon,
   Input,
+  Link as ChakraLink,
   Select,
   Stack,
   Text,
@@ -23,18 +31,21 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Demand, DemandCategory, DemandPriority } from "@/types/demand";
+import { Organ, buildWhatsappLink, buildEmailLink } from "@/types/organ";
 import { useRouter } from "next/navigation";
 import {
-  FiEdit3,
   FiMapPin,
-  FiUser,
   FiSend,
   FiArrowLeft,
   FiAlertCircle,
+  FiCamera,
 } from "react-icons/fi";
 import Link from "next/link";
+import { ImageUpload } from "@/components/forms/ImageUpload";
+import { api } from "@/services/api";
+import { categoryLabel } from "@/utils/categoryLabel";
 
 function SectionCard({
   icon,
@@ -72,18 +83,50 @@ function SectionCard({
   );
 }
 
+const buildSuggestedDemandText = (categoria: DemandCategory, organ?: Organ | null) => {
+  const organName = organ?.nome ?? "órgão responsável";
+
+  return {
+    titulo: categoryLabel[categoria],
+    descricao: `Imagem analisada automaticamente. Sugestão de encaminhamento para ${organName}. A ocorrência foi identificada a partir da foto anexada e deve ser revisada pelo gestor antes do envio definitivo ao órgão responsável.`,
+  };
+};
+
 export default function NewDemandPage() {
   const { createDemand, loading } = useDemandStore();
+  const { user } = useAuthStore();
   const toast = useToast();
   const router = useRouter();
   const [accepted, setAccepted] = useState(false);
   const [form, setForm] = useState<Partial<Demand>>({ prioridade: "media", categoria: "outros" });
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [organs, setOrgans] = useState<Organ[]>([]);
+  const [matchedOrgan, setMatchedOrgan] = useState<Organ | null>(null);
+
+  useEffect(() => {
+    api.getOrgans().then(setOrgans).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!form.categoria || organs.length === 0) { setMatchedOrgan(null); return; }
+    const organ = organs.find((o) => {
+      try { const cats: DemandCategory[] = JSON.parse(o.categoriasJson); return cats.includes(form.categoria as DemandCategory); }
+      catch { return false; }
+    }) ?? null;
+    setMatchedOrgan(organ);
+  }, [form.categoria, organs]);
+
+  useEffect(() => {
+    if (!form.categoria || !matchedOrgan || form.titulo || form.descricao) return;
+    const suggestion = buildSuggestedDemandText(form.categoria as DemandCategory, matchedOrgan);
+    setForm((prev) => ({ ...prev, ...suggestion }));
+  }, [form.categoria, form.descricao, form.titulo, matchedOrgan]);
 
   const handleChange = (key: keyof Demand, value: unknown) => setForm((p) => ({ ...p, [key]: value }));
 
   const handleSubmit = async () => {
     if (!accepted) return toast({ title: "Confirme o aceite", status: "warning" });
-    if (!form.titulo || !form.descricao || !form.nomeSolicitante || !form.emailSolicitante || !form.endereco?.endereco) {
+    if (!form.titulo || !form.descricao || !form.endereco?.endereco) {
       return toast({ title: "Preencha os campos obrigatórios", status: "warning" });
     }
     const payload: Omit<Demand, "id" | "protocolo" | "criadaEm" | "atualizadaEm"> = {
@@ -93,16 +136,19 @@ export default function NewDemandPage() {
       categoria: (form.categoria as DemandCategory) ?? "outros",
       prioridade: (form.prioridade as DemandPriority) ?? "media",
       status: "registrada",
-      nomeSolicitante: form.nomeSolicitante!,
-      emailSolicitante: form.emailSolicitante!,
-      telefoneSolicitante: form.telefoneSolicitante,
+      nomeSolicitante: user?.nome ?? "",
+      emailSolicitante: user?.email ?? "",
+      telefoneSolicitante: undefined,
       endereco: {
         endereco: form.endereco?.endereco || "",
         bairro: form.endereco?.bairro || "",
         cidade: form.endereco?.cidade || "",
         referencia: form.endereco?.referencia,
+        latitude: form.endereco?.latitude,
+        longitude: form.endereco?.longitude,
       },
       origem: "cidadao",
+      imagemUrl: imageUrl ?? undefined,
       historico: [],
     };
     const created = await createDemand(payload);
@@ -137,10 +183,73 @@ export default function NewDemandPage() {
         </VStack>
 
         <Stack spacing={5}>
-          {/* Seção: Dados da demanda */}
-          <SectionCard icon={FiEdit3} title="Dados da demanda" subtitle="Descreva o problema encontrado">
+          {/* Seção: Foto do problema */}
+          <SectionCard icon={FiCamera} title="Foto do problema" subtitle="Nossa IA classifica a categoria automaticamente">
+            <ImageUpload
+              onResult={({ imageUrl: url, triagem, latitude, longitude }) => {
+                setImageUrl(url);
+                setForm((prev) => ({
+                  ...prev,
+                  categoria: triagem.categoria,
+                  ...buildSuggestedDemandText(
+                    triagem.categoria,
+                    organs.find((o) => {
+                      try {
+                        const cats: DemandCategory[] = JSON.parse(o.categoriasJson);
+                        return cats.includes(triagem.categoria);
+                      } catch {
+                        return false;
+                      }
+                    }) ?? null
+                  ),
+                  endereco: {
+                    endereco: prev.endereco?.endereco ?? "",
+                    bairro: prev.endereco?.bairro ?? "",
+                    cidade: prev.endereco?.cidade ?? "Recife",
+                    referencia: prev.endereco?.referencia,
+                    latitude: latitude ?? prev.endereco?.latitude,
+                    longitude: longitude ?? prev.endereco?.longitude,
+                  },
+                }));
+              }}
+            />
+          </SectionCard>
+
+          {/* Card órgão responsável */}
+          {matchedOrgan && (
+            <Alert status="info" borderRadius="xl" border="1px solid" borderColor="blue.100">
+              <AlertIcon />
+              <Box flex="1">
+                <AlertTitle fontSize="sm">Órgão responsável sugerido</AlertTitle>
+                <AlertDescription>
+                  <Text fontWeight="semibold">{matchedOrgan.nome}</Text>
+                  {matchedOrgan.telefone && <Text fontSize="sm" color="gray.600">Tel: {matchedOrgan.telefone}</Text>}
+                  <HStack mt={2} spacing={2} flexWrap="wrap">
+                    {buildWhatsappLink(matchedOrgan, "novo", form.titulo ?? "demanda") && (
+                      <ChakraLink href={buildWhatsappLink(matchedOrgan, "novo", form.titulo ?? "demanda")!} isExternal>
+                        <Button size="xs" colorScheme="whatsapp">WhatsApp</Button>
+                      </ChakraLink>
+                    )}
+                    {buildEmailLink(matchedOrgan, "novo", form.titulo ?? "demanda") && (
+                      <ChakraLink href={buildEmailLink(matchedOrgan, "novo", form.titulo ?? "demanda")!}>
+                        <Button size="xs" colorScheme="blue" variant="outline">E-mail</Button>
+                      </ChakraLink>
+                    )}
+                    {matchedOrgan.site && (
+                      <ChakraLink href={matchedOrgan.site} isExternal>
+                        <Button size="xs" variant="ghost">Site oficial</Button>
+                      </ChakraLink>
+                    )}
+                  </HStack>
+                </AlertDescription>
+              </Box>
+            </Alert>
+          )}
+
+          {/* Campos da demanda */}
+          <Box bg="white" rounded="xl" border="1px solid" borderColor="gray.100" shadow="sm" px={6} py={5}>
             <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-              <GridItem>
+              <GridItem colSpan={{ base: 1, md: 2 }}>
                 <FormControl isRequired>
                   <FormLabel fontSize="sm" fontWeight="medium" color="gray.700">Título</FormLabel>
                   <Input
@@ -153,28 +262,6 @@ export default function NewDemandPage() {
                     _hover={{ borderColor: "gray.300" }}
                     _focus={{ borderColor: "brand.400", bg: "white", boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)" }}
                   />
-                </FormControl>
-              </GridItem>
-              <GridItem>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight="medium" color="gray.700">Categoria</FormLabel>
-                  <Select
-                    value={form.categoria ?? "outros"}
-                    onChange={(e) => handleChange("categoria", e.target.value)}
-                    bg="gray.50"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    _hover={{ borderColor: "gray.300" }}
-                    _focus={{ borderColor: "brand.400", bg: "white", boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)" }}
-                  >
-                    <option value="vias_publicas">Vias públicas</option>
-                    <option value="iluminacao_publica">Iluminação pública</option>
-                    <option value="coleta_de_lixo">Coleta de lixo</option>
-                    <option value="saneamento">Saneamento</option>
-                    <option value="fiscalizacao">Fiscalização</option>
-                    <option value="zeladoria">Zeladoria</option>
-                    <option value="outros">Outros</option>
-                  </Select>
                 </FormControl>
               </GridItem>
               <GridItem colSpan={{ base: 1, md: 2 }}>
@@ -227,7 +314,7 @@ export default function NewDemandPage() {
                 </FormControl>
               </GridItem>
             </Grid>
-          </SectionCard>
+          </Box>
 
           {/* Seção: Localização */}
           <SectionCard icon={FiMapPin} title="Localização" subtitle="Onde o problema foi identificado">
@@ -269,58 +356,6 @@ export default function NewDemandPage() {
                     placeholder="Cidade"
                     value={form.endereco?.cidade ?? ""}
                     onChange={(e) => handleChange("endereco", { ...form.endereco, cidade: e.target.value })}
-                    bg="gray.50"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    _hover={{ borderColor: "gray.300" }}
-                    _focus={{ borderColor: "brand.400", bg: "white", boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)" }}
-                  />
-                </FormControl>
-              </GridItem>
-            </Grid>
-          </SectionCard>
-
-          {/* Seção: Contato */}
-          <SectionCard icon={FiUser} title="Dados do solicitante" subtitle="Suas informações de contato">
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-              <GridItem>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight="medium" color="gray.700">Nome</FormLabel>
-                  <Input
-                    placeholder="Seu nome completo"
-                    value={form.nomeSolicitante ?? ""}
-                    onChange={(e) => handleChange("nomeSolicitante", e.target.value)}
-                    bg="gray.50"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    _hover={{ borderColor: "gray.300" }}
-                    _focus={{ borderColor: "brand.400", bg: "white", boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)" }}
-                  />
-                </FormControl>
-              </GridItem>
-              <GridItem>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight="medium" color="gray.700">Email</FormLabel>
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={form.emailSolicitante ?? ""}
-                    onChange={(e) => handleChange("emailSolicitante", e.target.value)}
-                    bg="gray.50"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    _hover={{ borderColor: "gray.300" }}
-                    _focus={{ borderColor: "brand.400", bg: "white", boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)" }}
-                  />
-                </FormControl>
-              </GridItem>
-              <GridItem>
-                <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="medium" color="gray.700">Telefone</FormLabel>
-                  <Input
-                    placeholder="(00) 00000-0000"
-                    value={form.telefoneSolicitante ?? ""}
-                    onChange={(e) => handleChange("telefoneSolicitante", e.target.value)}
                     bg="gray.50"
                     border="1px solid"
                     borderColor="gray.200"

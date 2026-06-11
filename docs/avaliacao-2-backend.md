@@ -2,17 +2,19 @@
 
 ## Stack implementada
 
-- Node.js + Express para API REST (`src/server`)
+- Node.js + Express para API REST (`backend/src`)
 - Prisma ORM + SQLite para persistência local (`prisma/schema.prisma`)
 - JWT com cookie HTTP-only e header `Authorization`
 - Perfis `cidadao` e `gestor` com autorização por rota
+- Upload de imagens com Multer e disponibilização em `/uploads`
+- Triagem de imagem com Google Vision opcional e fallback para categoria enviada pelo frontend
 - Redis opcional para cache de métricas
 - Cron job opcional para snapshots periódicos de indicadores
 
 ## Arquitetura
 
 ```text
-src/server/
+backend/src/
 ├── app.ts                 # middlewares e rotas Express
 ├── index.ts               # bootstrap do servidor
 ├── config/                # env, prisma, redis
@@ -20,8 +22,7 @@ src/server/
 ├── services/              # regras de negócio
 ├── repositories/          # acesso ao Prisma
 ├── routes/                # definição dos endpoints
-├── middlewares/           # auth e tratamento de erro
-├── jobs/                  # cron de métricas
+├── middlewares/           # auth, upload e tratamento de erro
 └── utils/                 # mappers e erros
 ```
 
@@ -41,6 +42,10 @@ src/server/
 - `GET /api/demands/:id` — detalhe da demanda
 - `PATCH /api/demands/:id/status` — alteração de status apenas por gestor
 
+### Upload
+
+- `POST /api/upload/image` — recebe foto da demanda, salva em `/uploads` e retorna triagem de imagem
+
 ### Métricas
 
 - `GET /api/metrics/summary` — consolida indicadores por status e categoria
@@ -48,10 +53,12 @@ src/server/
 ## Regras de negócio
 
 - Cidadão acessa apenas suas próprias demandas.
-- Gestor acessa todas as demandas e pode alterar status.
-- Toda criação de demanda gera protocolo, histórico inicial e triagem automática simples.
+- Gestor acessa demandas do órgão vinculado; gestores sem vínculo veem a fila geral.
+- Toda criação de demanda gera protocolo, histórico inicial e triagem automática.
+- A triagem sugere órgão responsável a partir da categoria detectada e do cadastro de órgãos.
+- O histórico exibe a triagem sem gravar links técnicos de contato no texto.
 - Alteração de status registra histórico com autor e observação.
-- Métricas de cidadão são escopadas ao próprio usuário; métricas de gestor são globais.
+- Métricas de cidadão são escopadas ao próprio usuário; métricas de gestor respeitam o escopo do órgão quando houver vínculo.
 
 ## Redis
 

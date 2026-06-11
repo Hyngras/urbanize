@@ -5,7 +5,7 @@
 <img width="1917" height="985" alt="image" src="https://github.com/user-attachments/assets/39b854b8-b572-40cb-8177-8a01f822b2ab" />
 
 
-**Stack:** Next.js 16 • TypeScript • Chakra UI • Zustand • Node.js • Express • Prisma ORM • JWT • Cookies • Redis opcional • Cron Jobs
+**Stack:** Next.js 16 • TypeScript • Chakra UI • Zustand • TensorFlow.js/MobileNet • Node.js • Express • Prisma ORM • JWT • Cookies • Redis opcional • Cron Jobs
 
 ## Início rápido
 
@@ -115,6 +115,8 @@ A autenticação usa senha com hash, JWT, cookie HTTP-only e proteção por perf
 - `/demandas/nova` - Criar nova demanda
 - `/demandas/:id` - Detalhes da demanda
 
+Na home, o CTA "Registrar demanda" direciona para `/login?next=/demandas/nova`; após autenticação, o cidadão segue para a tela de criação.
+
 <details>
 <summary>Ver jornada completa do cidadão</summary>
 
@@ -125,7 +127,7 @@ Consulte a [documentação de jornadas](docs/jornada-usuario.md) para fluxos det
 ### Perfil Gestor
 
 **Permissões:**
-- ✅ Visualizar todas as demandas da cidade
+- ✅ Visualizar demandas do seu órgão ou, quando sem vínculo, a fila geral
 - ✅ Alterar status de demandas
 - ✅ Adicionar observações
 - ✅ Revisar triagem automática
@@ -134,7 +136,7 @@ Consulte a [documentação de jornadas](docs/jornada-usuario.md) para fluxos det
 
 **Navegação:**
 - `/gestor` - Painel de gestão
-- `/demandas` - Todas as demandas
+- `/demandas` - Demandas visíveis ao gestor
 - `/demandas/:id` - Gerenciar demanda
 
 <img width="1917" height="994" alt="image" src="https://github.com/user-attachments/assets/01d549a9-9f3f-434f-aa5f-494a8b9870b5" />
@@ -158,46 +160,48 @@ O sistema implementa controle de acesso automático:
 
 ### Triagem inteligente
 
-Regra de negócio executada no backend:
-- Classificação por categoria informada
-- Sugestão de órgão responsável
-- Score simples de confiança
-- Histórico inicial da demanda gravado no banco
+Fluxo atual de triagem:
+- Upload de foto na criação da demanda
+- Classificação local no navegador com TensorFlow.js/MobileNet
+- Fallback no backend com Google Vision quando `GOOGLE_APPLICATION_CREDENTIALS_JSON` estiver configurado
+- Rótulos exibidos: **Buraco na rua**, **Lixo acumulado na rua** e **Poste ou fiação caída**
+- Sugestão de órgão responsável conforme categoria detectada e cadastro de órgãos
+- Título e descrição preenchidos automaticamente após análise da imagem
+- Histórico inicial da demanda gravado no banco sem expor links técnicos de contato
 
 ## Estrutura do projeto
 
 ```
-src/
+frontend/src/
 ├── app/                    # Páginas Next.js (App Router)
 │   ├── api/               # Rotas legadas da etapa 1
 │   ├── cadastro/          # Página de cadastro
 │   ├── dashboard/         # Dashboard do cidadão
-│   ├── demandas/          # Listagem e detalhes
+│   ├── demandas/          # Criação, listagem e detalhes
 │   ├── gestor/            # Painel do gestor
 │   └── login/             # Página de login
 ├── components/            # Componentes React
 │   ├── auth/             # Proteção de rotas
-│   ├── common/           # Componentes genéricos
 │   ├── dashboard/        # Cards de métricas
 │   ├── demandas/         # Cards, filtros, timeline
-│   ├── feedback/         # Loading, error, empty states
-│   ├── forms/            # Formulários
+│   ├── forms/            # Formulários e upload de imagem
 │   ├── layout/           # Navbar, footer, layout
 │   └── ui/               # Badges, títulos
-├── hooks/                # Custom hooks
-├── mocks/                # Handlers legados da etapa 1
-├── server/               # Backend Express + Prisma
-│   ├── config/           # Variáveis, Prisma e Redis
-│   ├── controllers/      # Entrada HTTP e validação
-│   ├── services/         # Regras de negócio
-│   ├── repositories/     # Acesso ao banco
-│   ├── routes/           # Endpoints REST
-│   ├── middlewares/      # Auth e erros
-│   └── jobs/             # Cron de métricas
 ├── services/             # Cliente HTTP e services do frontend
 ├── store/                # Zustand stores
 ├── types/                # TypeScript types
-└── utils/                # Funções auxiliares
+└── utils/                # Classificação, labels e auxiliares
+
+backend/src/
+├── app.ts                 # Middlewares e rotas Express
+├── server.ts              # Bootstrap do servidor
+├── config/                # Variáveis, Prisma e Redis
+├── controllers/           # Entrada HTTP e validação
+├── services/              # Regras de negócio e triagem
+├── repositories/          # Acesso ao banco
+├── routes/                # Endpoints REST
+├── middlewares/           # Auth, upload e erros
+└── utils/                 # Mappers e erros
 ```
 
 <details>
@@ -256,7 +260,7 @@ Checklist completo de conformidade com todos os requisitos implementados
 **Design:**
 - Totalmente responsivo (mobile, tablet, desktop)
 - Sistema de cores customizado
-- Dark mode support (Chakra UI)
+- Tema claro customizado com Chakra UI
 - Acessibilidade (ARIA labels)
 
 <details>
@@ -269,7 +273,11 @@ Checklist completo de conformidade com todos os requisitos implementados
   "express": "^5.2.1",
   "@prisma/client": "^7.8.0",
   "@prisma/adapter-better-sqlite3": "^7.8.0",
+  "@chakra-ui/next-js": "^2.4.2",
+  "@tensorflow-models/mobilenet": "^2.1.1",
+  "@tensorflow/tfjs": "^4.22.0",
   "bcryptjs": "^3.0.3",
+  "exifr": "^7.1.3",
   "jsonwebtoken": "^9.0.3",
   "ioredis": "^5.10.1",
   "node-cron": "^4.2.1",
@@ -285,13 +293,13 @@ Checklist completo de conformidade com todos os requisitos implementados
 ## Notas de desenvolvimento
 
 **API real:**  
-A aplicação usa backend Express em `src/server`, persistência Prisma/SQLite e autenticação JWT. O Redis é opcional para cache de métricas e o cron consolida snapshots periódicos em `MetricsSnapshot`.
+A aplicação usa backend Express em `backend/src`, persistência Prisma/SQLite e autenticação JWT. O Redis é opcional para cache de métricas e o cron consolida snapshots periódicos em `MetricsSnapshot`.
 
 **Perfis:**  
 O perfil é definido no cadastro e armazenado no banco. O backend valida permissões por rota e impede alterações de status por cidadãos.
 
 **Proteção de rotas:**  
-Componente `RoleProtectedRoute` em `src/components/auth/` verifica autenticação e permissões antes de renderizar páginas protegidas.
+Componente `RoleProtectedRoute` em `frontend/src/components/auth/` verifica autenticação e permissões antes de renderizar páginas protegidas.
 
 **Estados visuais:**  
 Todos os componentes de lista implementam loading states (skeleton), empty states e error states para melhor UX.
@@ -303,6 +311,7 @@ Todos os componentes de lista implementam loading states (skeleton), empty state
 ✅ **Autenticação real:** Cadastro, login, JWT, cookie e logout  
 ✅ **Perfis:** Cidadão e gestor com permissões distintas  
 ✅ **CRUD principal:** Demandas com filtros, detalhe, criação e alteração de status  
+✅ **Upload de imagem:** Anexo de foto, armazenamento local e URL `/uploads/...`  
 ✅ **Integração frontend + backend:** Services usam Axios para consumir API real  
 ✅ **Redis opcional:** Cache de métricas quando `REDIS_URL` está configurado  
 ✅ **Cron opcional:** Snapshot periódico de métricas  
@@ -312,7 +321,7 @@ Todos os componentes de lista implementam loading states (skeleton), empty state
 ✅ **Stack obrigatória:** Next.js, TypeScript, Chakra UI  
 ✅ **10 funcionalidades MVP:** Todas implementadas  
 ✅ **Páginas obrigatórias:** Home, Login, Cadastro, Dashboard, Gestor, Demandas  
-✅ **Extras:** Diferenciação de perfis, proteção de rotas, triagem, métricas  
+✅ **Extras:** Diferenciação de perfis, proteção de rotas, upload de fotos, triagem por imagem, métricas  
 ✅ **Responsividade:** Mobile, tablet e desktop  
 ✅ **Estados de feedback:** Loading, error, empty em todas as listas
 
@@ -324,11 +333,11 @@ Consulte [docs/requisitos-urbanize.md](docs/requisitos-urbanize.md) para checkli
 
 **Vídeo demonstrativo:** https://drive.google.com/file/d/18r728n8keNXeKZlQN2OaagseRG1cEEZP/view?usp=sharing
 
-**Relatório Evolutivo de Gerenciamento de Projetos:** https://docs.google.com/document/d/1VPHJShULJMxiHVufiEe1QSkML5U3jmdb/edit?usp=sharing&ouid=114422210981340383118&rtpof=true&sd=true
+**Relatório Evolutivo de Gerenciamento de Projetos:** (docs/Urbanize - Relatório Evolutivo de Gerenciamento de Projetos.md) 
 
 ## Próximos passos
 
-- [ ] Integração com backend real
-- [ ] Implementação de IA para triagem
+- [x] Integração com backend real
+- [x] Triagem inicial por imagem com TensorFlow.js/MobileNet e fallback Google Vision
 - [ ] Sistema de notificações
-- [ ] Upload de fotos em demandas
+- [x] Upload de fotos em demandas

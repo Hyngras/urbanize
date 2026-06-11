@@ -14,7 +14,7 @@ Requisitos do professor que precisávamos implementar:
 | **Chakra UI** | ✅ Feito | 2.10.9 | `/components/*` |
 | **Tailwind CSS** | ✅ Feito | 4.2.2 | Integrado com Chakra |
 | **Zustand** | ✅ Feito | 5.0.12 | `/store/*` |
-| **API Fake** | ✅ Feito | MSW 2.13.1 | `/mocks/*` + `/services/api.ts` |
+| **API / Dados** | ✅ Feito | Express + Prisma, MSW legado | `backend/src/*`, `/mocks/*` |
 
 **Notas da equipe:**
 - Configuramos TypeScript em modo strict desde o início
@@ -40,17 +40,18 @@ Requisitos do professor que precisávamos implementar:
 - [x] **3. Registro de demandas urbanas** ✅
   - Página: `/demandas/nova`
   - API: `POST /api/demands`
-  - Formulário completo com todos os campos
+  - Formulário com upload de foto, título/descrição automáticos, prioridade e localização
 
 - [x] **4. Definição de categoria da demanda** ✅
-  - 7 categorias implementadas:
-    - Iluminação pública
-    - Vias públicas
-    - Coleta de lixo
+  - Categoria técnica persistida no backend e rótulo amigável exibido na UI:
+    - Poste ou fiação caída (`iluminacao_publica`)
+    - Buraco na rua (`vias_publicas`)
+    - Lixo acumulado na rua (`coleta_de_lixo`)
     - Saneamento
     - Fiscalização
     - Zeladoria urbana
     - Outros
+  - Categoria pode ser preenchida automaticamente pela triagem da imagem.
 
 - [x] **5. Descrição da solicitação** ✅
   - Campo textarea no formulário
@@ -100,7 +101,7 @@ Requisitos do professor que precisávamos implementar:
 
 - [x] **Formulário de criação de demanda** ✅
   - `/demandas/nova`
-  - 12+ campos implementados
+  - Upload de foto, título, descrição, prioridade, localização e aceite
   - Validação básica funcionando
 
 - [x] **Visualização de detalhes da demanda** ✅
@@ -112,7 +113,7 @@ Requisitos do professor que precisávamos implementar:
 - [x] **Painel administrativo para gestores** ✅
   - `/gestor`
   - Métricas gerais
-  - Fila de triagem inteligente (mock de IA)
+  - Fila de triagem inteligente com foto, descrição e sugestão de órgão
   - Filtros específicos
 
 - [x] **Sistemas de Filtros** ✅
@@ -124,9 +125,10 @@ Requisitos do professor que precisávamos implementar:
   - Navbar responsiva
   - Links funcionais
 
-- [x] **Integração com API fake** ✅
-  - 7 endpoints implementados e funcionando
-  - Dados persistem no localStorage
+- [x] **Integração com API real** ✅
+  - Endpoints Express implementados e funcionando
+  - Dados persistem no SQLite via Prisma
+  - MSW e rotas mock permanecem apenas como legado da etapa inicial
 
 ### Páginas "Menos Prioritárias" (também fizemos)
 
@@ -145,12 +147,13 @@ Checklist dos aspectos técnicos que serão avaliados:
 ### 4.1 Estrutura e Organização do Projeto
 
 - [x] ✅ Organização clara de pastas
-  - `src/app/` - Páginas
-  - `src/components/` - Componentes (separados por domínio)
-  - `src/services/` - Camada de API
-  - `src/store/` - Zustand stores
-  - `src/types/` - TypeScript interfaces
-  - `src/utils/` - Funções auxiliares
+  - `frontend/src/app/` - Páginas
+  - `frontend/src/components/` - Componentes (separados por domínio)
+  - `frontend/src/services/` - Camada de API
+  - `frontend/src/store/` - Zustand stores
+  - `frontend/src/types/` - TypeScript interfaces
+  - `frontend/src/utils/` - Funções auxiliares
+  - `backend/src/` - API Express
 
 - [x] ✅ Separação entre componentes, páginas, serviços e stores
   - Cada coisa no seu lugar
@@ -172,7 +175,7 @@ Checklist dos aspectos técnicos que serão avaliados:
   - Props sempre com interface
 
 - [x] ✅ Definição de interfaces e tipos
-  - 16 interfaces criadas em `/src/types/`
+  - Interfaces criadas em `frontend/src/types/`
   - Types: `DemandStatus`, `DemandCategory`, `DemandPriority`, etc
   - Interfaces: `Demand`, `User`, `FilterState`, `MetricsSummary`, etc
 
@@ -273,11 +276,11 @@ Checklist dos aspectos técnicos que serão avaliados:
 - `demandStore`: demands, filters, create, update, fetch
 - `uiStore`: sidebar, modals
 
-### 4.8 Integração com API Fake
+### 4.8 Integração com API real
 
-- [x] ✅ Consumo correto de endpoints
+- [x] ✅ Consumo correto de endpoints Express
   - Services fazem chamadas para API
-  - Dados mockados respondem corretamente
+  - Dados persistem no banco local via Prisma
 
 - [x] ✅ Tratamento de loading
   - Estado de loading em todas as stores
@@ -300,6 +303,8 @@ Checklist dos aspectos técnicos que serão avaliados:
 6. `GET /api/demands/[id]` - Detalhes da demanda
 7. `PATCH /api/demands/[id]/status` - Atualizar status
 8. `GET /api/metrics/summary` - Métricas
+9. `POST /api/upload/image` - Upload e triagem de imagem
+10. `GET /api/organs` - Órgãos responsáveis
 
 ### 4.9 Formulários
 
@@ -317,8 +322,8 @@ Checklist dos aspectos técnicos que serão avaliados:
 
 **Formulários criados:**
 - Login: email, senha
-- Cadastro: nome, email, telefone
-- Nova demanda: título, descrição, categoria, prioridade, endereço, etc
+- Cadastro: nome, email, senha e perfil
+- Nova demanda: upload de foto, título, descrição, prioridade, localização e aceite
 
 ### 4.10 Responsividade
 
@@ -337,9 +342,9 @@ Checklist dos aspectos técnicos que serão avaliados:
 ## 5. Extras que Implementamos
 
 - [x] **Sistema de perfis diferenciados**
-  - Cidadão e gestor têm navegações diferentes
+  - Cidadão e gestor têm permissões diferentes
   - Igual app de banco (cada perfil vê coisas diferentes)
-  - Detecção automática por email (@cidadaourbanize.com vs @gestorurbanize.com)
+  - Perfil definido no cadastro ou no seed inicial
 
 - [x] **Proteção de rotas por perfil**
   - Component `RoleProtectedRoute`
@@ -354,8 +359,9 @@ Checklist dos aspectos técnicos que serão avaliados:
   - Usuário continua logado mesmo após fechar o navegador
   - Zustand persist middleware
 
-- [x] **3 documentos em /docs/**
+- [x] **Documentação em /docs/**
   - `jornada-usuario.md` - Fluxos de cada perfil
-  - `requisitos.md` - Requisitos da Avaliação 1
-  - `perfis-usuarios.md` - Guia completo de perfis
-  - Este checklist (`conformidade-requisitos.md`)
+  - `requisitos-urbanize.md` - Requisitos da Avaliação 1
+  - `avaliacao-2-backend.md` - Backend real e endpoints
+  - `modelagem-conceitual.md` - Modelo conceitual
+  - `plano-de-testes.md` - Plano de testes

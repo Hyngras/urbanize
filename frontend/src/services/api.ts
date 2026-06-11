@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { Demand, FilterState } from "@/types/demand";
 import { MetricsSummary } from "@/types/metrics";
 import { User, DemandRole } from "@/types/user";
+import { Organ } from "@/types/organ";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -130,6 +131,14 @@ export const api = {
   async logout(): Promise<void> {
     try {
       await http.post<ApiResponse<null>>("/auth/logout");
+    } catch (error) {
+      return normalizeError(error);
+    }
+  },
+
+  async getOrgans(): Promise<Organ[]> {
+    try {
+      return unwrap(await http.get<ApiResponse<Organ[]>>("/organs"));
     } catch (error) {
       return normalizeError(error);
     }

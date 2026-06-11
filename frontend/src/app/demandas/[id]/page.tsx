@@ -6,7 +6,6 @@ import { PriorityBadge } from "@/components/ui/PriorityBadge";
 import { DemandTimeline } from "@/components/demandas/DemandTimeline";
 import { useDemandStore } from "@/store/demandStore";
 import { formatDate } from "@/utils/formatDate";
-import { categoryLabel } from "@/utils/categoryLabel";
 import { formatLocation } from "@/utils/locationLabel";
 import { statusLabel } from "@/utils/statusLabel";
 import { DemandStatus } from "@/types/demand";
@@ -93,7 +92,7 @@ export default function DemandDetailPage() {
         </Stack>
       </Flex>
 
-      <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={6}>
+      <Grid templateColumns={{ base: "1fr", lg: user?.role === "gestor" ? "2fr 1fr" : "1fr" }} gap={6}>
         <Stack spacing={4}>
           <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
             <Heading size="sm" mb={2}>Descrição</Heading>
@@ -110,12 +109,6 @@ export default function DemandDetailPage() {
         </Stack>
 
         <Stack spacing={4}>
-          <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
-            <Heading size="sm" mb={2}>Triagem automática (mock)</Heading>
-            <Text>Categoria sugerida: {categoryLabel[selected.categoria]}</Text>
-            <Text>Órgão sugerido: {selected.sugestaoEncaminhamento ?? "—"}</Text>
-            <Text>Confiança: {Math.round((selected.scoreTriagem ?? 0.72) * 100)}%</Text>
-          </Box>
           {user?.role === "gestor" && (
             <Box bg="white" p={5} rounded="lg" border="1px solid" borderColor="gray.100">
               <Heading size="sm" mb={2}>Ação do gestor</Heading>
@@ -128,7 +121,7 @@ export default function DemandDetailPage() {
                 placeholder="Observação ou despacho"
                 mb={4}
               />
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
+              <SimpleGrid columns={1} spacing={3}>
                 {statusActions.map((action) => {
                   const isCurrentStatus = selected.status === action.status;
 
@@ -141,6 +134,12 @@ export default function DemandDetailPage() {
                       isLoading={loading}
                       isDisabled={isCurrentStatus}
                       title={action.description}
+                      w="full"
+                      minH="44px"
+                      h="auto"
+                      whiteSpace="normal"
+                      textAlign="center"
+                      py={3}
                     >
                       {isCurrentStatus ? `Atual: ${statusLabel[action.status]}` : action.label}
                     </Button>

@@ -16,6 +16,7 @@ import {
   Heading,
   HStack,
   Icon,
+  Image,
   Select,
   Stack,
   Text,
@@ -24,6 +25,7 @@ import {
 } from "@chakra-ui/react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { categoryLabel } from "@/utils/categoryLabel";
 import {
   FiBarChart2,
   FiSearch,
@@ -36,6 +38,14 @@ import {
   FiInbox,
 } from "react-icons/fi";
 
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:4000/api").replace(/\/api\/?$/, "");
+
+const getDemandImageSrc = (imagemUrl?: string) => {
+  if (!imagemUrl) return undefined;
+  if (/^https?:\/\//.test(imagemUrl)) return imagemUrl;
+  return `${API_ORIGIN}${imagemUrl.startsWith("/") ? "" : "/"}${imagemUrl}`;
+};
+
 export default function GestorPage() {
   const { metrics } = useMetrics();
   const { demands, fetchDemands, filters, setFilters, updateDemandStatus } = useDemandStore();
@@ -47,7 +57,7 @@ export default function GestorPage() {
   }, [filters, fetchDemands]);
 
   const triageQueue = useMemo(
-    () => demands.filter((d) => d.status === "em_analise"),
+    () => demands.filter((d) => ["registrada", "em_analise"].includes(d.status) && (d.imagemUrl || d.sugestaoEncaminhamento)),
     [demands]
   );
 
@@ -229,15 +239,39 @@ export default function GestorPage() {
                 >
                   <Flex
                     justify="space-between"
-                    align={{ base: "start", md: "center" }}
+                    align={{ base: "start", md: "stretch" }}
                     gap={4}
                     direction={{ base: "column", md: "row" }}
                   >
+                    {d.imagemUrl && (
+                      <Box
+                        w={{ base: "full", md: "180px" }}
+                        h={{ base: "180px", md: "140px" }}
+                        rounded="lg"
+                        overflow="hidden"
+                        bg="gray.100"
+                        flexShrink={0}
+                      >
+                        <Image
+                          src={getDemandImageSrc(d.imagemUrl)}
+                          alt={`Foto enviada para a demanda ${d.protocolo}`}
+                          w="100%"
+                          h="100%"
+                          objectFit="cover"
+                        />
+                      </Box>
+                    )}
                     <Stack spacing={2} flex={1}>
                       <Text fontSize="xs" color="gray.400" fontWeight="semibold" textTransform="uppercase" letterSpacing="wide">
                         {d.protocolo}
                       </Text>
                       <Heading size="sm" color="gray.800">{d.titulo}</Heading>
+                      <Text fontSize="sm" color="gray.600" noOfLines={2}>
+                        {d.descricao}
+                      </Text>
+                      <Text fontSize="sm" color="gray.700">
+                        Sugestão: encaminhar para <Box as="span" fontWeight="semibold">{d.sugestaoEncaminhamento ?? "(não informado)"}</Box> com base na categoria {categoryLabel[d.categoria].toLowerCase()}.
+                      </Text>
                       <HStack spacing={4} flexWrap="wrap">
                         <Box>
                           <Text fontSize="xs" color="gray.400">Órgão sugerido</Text>
