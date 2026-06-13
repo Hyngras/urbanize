@@ -329,7 +329,19 @@ Consulte [docs/requisitos-urbanize.md](docs/requisitos-urbanize.md) para checkli
 
 ## Demo e Deploy
 
-**Deploy:** https://urbanize-eta.vercel.app/
+**Frontend (Vercel):** https://urbanize-eta.vercel.app/
+
+**Backend (Render):** https://urbanize-backend.onrender.com/api/health
+
+> **Importante:** o backend está hospedado no plano gratuito do Render. Por isso, ele pode ficar inativo após alguns minutos sem uso. Antes de testar o sistema pelo frontend, abra primeiro o link do backend acima e aguarde aparecer:
+>
+> `{"success":true,"data":{"status":"ok"}}`
+>
+> Depois disso, acesse o frontend normalmente pela Vercel.
+
+**Credenciais de teste:**
+- Cidadão: `cidadao@urbanize.com` / `demo`
+- Gestor: `gestor@urbanize.com` / `demo`
 
 **Vídeo demonstrativo:** https://drive.google.com/file/d/15X7kPG8PKER3oMKsnmrWBBHeLHlu1IAH/view?usp=sharing
 
