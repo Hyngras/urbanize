@@ -29,9 +29,7 @@ const ensureAllowed = (demand: Awaited<ReturnType<typeof demandRepository.findBy
 export const demandService = {
   async list(filters: Omit<DemandFilters, "userId">, user: { id: string; role: UserRole; organId?: string | null }) {
     if (user.role === "gestor") {
-      // Gestor vê apenas demandas do seu órgão (se tiver vínculo)
-      const scope = user.organId ? { organId: user.organId } : {};
-      const demands = await demandRepository.list({ ...filters, ...scope });
+      const demands = await demandRepository.list(filters);
       return demands.map(toDemandResponse);
     }
     const demands = await demandRepository.list({ ...filters, userId: user.id });

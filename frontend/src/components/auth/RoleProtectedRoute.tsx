@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { DemandRole } from "@/types/user";
@@ -15,9 +15,14 @@ interface Props {
 export function RoleProtectedRoute({ children, allowedRoles, redirectTo }: Props) {
   const { user, loading } = useAuthStore();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (loading) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || loading) return;
 
     if (!user) {
       router.push("/login");
@@ -28,9 +33,9 @@ export function RoleProtectedRoute({ children, allowedRoles, redirectTo }: Props
       const defaultRedirect = user.role === "gestor" ? "/gestor" : "/dashboard";
       router.push(redirectTo || defaultRedirect);
     }
-  }, [user, loading, allowedRoles, redirectTo, router]);
+  }, [mounted, user, loading, allowedRoles, redirectTo, router]);
 
-  if (loading || !user) {
+  if (!mounted || loading || !user) {
     return (
       <Center minH="100vh">
         <Spinner size="xl" color="brand.500" />
