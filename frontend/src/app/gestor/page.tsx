@@ -48,13 +48,13 @@ const getDemandImageSrc = (imagemUrl?: string) => {
 
 export default function GestorPage() {
   const { metrics } = useMetrics();
-  const { demands, fetchDemands, filters, setFilters, updateDemandStatus } = useDemandStore();
+  const { demands, fetchDemands, updateDemandStatus } = useDemandStore();
   const toast = useToast();
-  const [status, setStatus] = useState(filters.status ?? "");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
-    fetchDemands(filters);
-  }, [filters, fetchDemands]);
+    fetchDemands({});
+  }, [fetchDemands]);
 
   const triageQueue = useMemo(
     () => demands.filter((d) => ["registrada", "em_analise"].includes(d.status) && (d.imagemUrl || d.sugestaoEncaminhamento)),
@@ -68,7 +68,7 @@ export default function GestorPage() {
 
   const handleStatus = (value: string) => {
     setStatus(value);
-    setFilters({ ...filters, status: (value || undefined) as DemandStatus | undefined });
+    fetchDemands(value ? { status: value as DemandStatus } : {});
   };
 
   return (
