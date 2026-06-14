@@ -346,7 +346,7 @@ Consulte [docs/requisitos-urbanize.md](docs/requisitos-urbanize.md) para checkli
 - Cidadão: `cidadao@urbanize.com` / `demo`
 - Gestor: `gestor@urbanize.com` / `demo`
 
-**Vídeo demonstrativo:** https://drive.google.com/file/d/15X7kPG8PKER3oMKsnmrWBBHeLHlu1IAH/view?usp=sharing
+**Vídeo demonstrativo:** https://youtu.be/dMM8QEGGw1g
 
 Relatório Evolutivo de Gerenciamento de Projetos: [Abrir relatório](<docs/Urbanize - Relatório Evolutivo de Gerenciamento de Projetos.md>)
 
