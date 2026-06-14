@@ -337,7 +337,3 @@ erDiagram
 | 008 | Revisar triagem automática | TriagemAutomatica, Foto, CategoriaProblema, OrgaoResponsavel |
 | 009 | Aceitar encaminhamento | Gestor, TriagemAutomatica, OrgaoResponsavel, Demanda |
 | 010 | Dashboard do cidadão | Cidadao, MetricasSistema |
-
----
-
-*Próximo documento: Modelo Lógico (normalização, chaves primárias/estrangeiras, tipos de dados e estrutura de tabelas) do Urbanize.*
